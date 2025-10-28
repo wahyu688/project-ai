@@ -39,6 +39,9 @@ main {
     flex: 1; 
 }
 
+/* --------------------
+   UTILITIES
+   -------------------- */
 .container {
     width: 90%;
     max-width: 1200px;
@@ -56,7 +59,20 @@ h1, h2, h3 {
 }
 
 .mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 0.75rem; } /* Tambahan untuk konsistensi di travel_map.html */
+.mt-4 { margin-top: 1rem; }    /* Tambahan untuk konsistensi di travel_map.html */
 .mt-5 { margin-top: 3rem; }
+.mb-1 { margin-bottom: 0.25rem; } /* Tambahan untuk konsistensi di travel_map.html */
+.mb-4 { margin-bottom: 1rem; }    /* Tambahan untuk konsistensi di travel_map.html */
+.w-full { width: 100%; }          /* Tambahan untuk konsistensi di travel_map.html */
+.p-3 { padding: 0.75rem; }        /* Tambahan untuk konsistensi di travel_map.html */
+.rounded-lg { border-radius: 0.5rem; } /* Tambahan untuk konsistensi di travel_map.html */
+.block { display: block; }        /* Tambahan untuk konsistensi di travel_map.html */
+.text-sm { font-size: 0.875rem; }  /* Tambahan untuk konsistensi di travel_map.html */
+.font-medium { font-weight: 500; } /* Tambahan untuk konsistensi di travel_map.html */
+.text-gray-700 { color: #4b5563; } /* Tambahan untuk konsistensi di travel_map.html */
+.text-gray-600 { color: #6b7280; } /* Tambahan untuk konsistensi di travel_map.html */
+.text-center { text-align: center; } /* Tambahan untuk konsistensi di world_forecast.html */
 
 /* --- Button & Animation --- */
 .btn {
@@ -136,6 +152,7 @@ h1, h2, h3 {
     font-size: 1.6rem;
     font-weight: 800;
     color: var(--color-primary);
+    text-decoration: none;
     text-transform: uppercase;
 }
 
@@ -402,35 +419,109 @@ h1, h2, h3 {
 /* Di css/style.css */
 
 /* Pastikan container peta memiliki ketinggian dan tidak ada overflow tersembunyi */
+.weather-map-container {
+    padding-top: 0;
+}
+
 #temperature-map {
-    margin-top: 1.5rem; /* Memberikan sedikit ruang di atas peta */
-    /* Pastikan tinggi diatur di HTML atau di sini, misal: height: 500px; */
-    /* border-radius dan box-shadow sudah diatur di HTML, jadi bisa dihapus di CSS jika ingin */
+    height: 600px;
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px var(--color-shadow);
+    z-index: 1; /* Penting untuk Leaflet */
+    margin-top: 1.5rem; /* Tambahan yang hilang */
 }
 
-/* Penyesuaian responsif jika diperlukan */
-@media (max-width: 768px) {
-    #temperature-map {
-        height: 400px !important; /* Tinggi peta lebih kecil di perangkat mobile */
-    }
+
+#world-weather-result {
+    /* Gaya Grid diterapkan di script.js, tapi ini defaultnya */
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
 }
 
-/* Untuk tampilan kontrol Leaflet agar serasi dengan tema Anda */
-/* Ini opsional, sesuaikan jika Anda ingin mengubah warna default Leaflet */
-.leaflet-control-layers,
-.leaflet-control-zoom,
-.leaflet-control-scale {
-    border-radius: 8px; /* Sudut lebih lembut */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Sedikit bayangan */
-    background-color: #fff; /* Latar belakang putih */
-    color: #333; /* Warna teks gelap */
+/* --------------------
+   TRAVEL MAP / ADVISOR (travel_map.html) - KONSISTENSI INPUT DAN LAYOUT
+   -------------------- */
+.section--route-advisor {
+    padding-top: 2rem; /* Memindahkan gaya inline dari section */
 }
 
-.leaflet-control-layers-toggle {
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="%23333"><path d="M10 12.5H22V19.5H10V12.5Z" opacity="0.4"/><path d="M4 8.5H28V23.5H4V8.5ZM6 10.5V21.5H26V10.5H6Z"/></svg>'); /* Icon custom jika ingin */
-    background-size: 26px; /* Ukuran icon */
-    background-position: center;
+/* GAYA ROUTE GRID (MEMINDAHKAN DARI INLINE STYLE) */
+.route-grid {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 30px;
 }
+        
+.route-advisor-card {
+    background-color: var(--color-bg-card-default);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px var(--color-shadow);
+}
+
+.map-container {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px var(--color-shadow);
+}
+
+#map-route {
+    height: 550px;
+    width: 100%;
+}
+
+/* GAYA INPUT KONSISTEN (route-input) - Sudah ada di file ini, tapi kita pastikan ulang */
+.route-input {
+    width: 100%; /* Agar input mengisi seluruh lebar form */
+    padding: 0.75rem 1rem; 
+    margin-bottom: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.route-input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(30, 144, 255, 0.3);
+}
+
+/* GAYA HASIL ANALISIS AI (MEMINDAHKAN DARI INLINE STYLE) */
+.ai-result-box {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 5px solid var(--color-primary);
+    background-color: #f0f8ff;
+}
+
+.ai-result-box h4 {
+    color: var(--color-primary);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.item-recommendation {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+    font-size: 0.95rem;
+}
+
+.item-recommendation i {
+    color: #28a745; /* Hijau untuk ikon */
+}
+
+.item-recommendation.alert i {
+    color: #ffc107; /* Kuning untuk peringatan */
+}
+
 
 /* News List */
 .news-list {
@@ -868,6 +959,54 @@ h1, h2, h3 {
     padding-top: 1rem;
 }
 
+/* --------------------
+    ROUTE CSS
+   -------------------- */
+.route-input {
+    width: 100%; /* Agar input mengisi seluruh lebar form */
+    padding: 0.75rem 1rem; /* Sedikit lebih kecil dari search-input utama untuk kompak */
+    margin-bottom: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.route-input:focus {
+    /* Gaya fokus yang konsisten dengan search-input di home.html */
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+
+/* Leaflet Routing Machine Overrides (PENTING untuk tampilan) */
+/* Menyembunyikan keseluruhan panel rute kecuali ringkasannya */
+.leaflet-routing-container {
+    background-color: transparent !important;
+    padding: 0;
+    box-shadow: none;
+    line-height: 1.4;
+    font-family: var(--font-family-sans);
+}
+
+/* Menyembunyikan teks instruksi di dalam peta */
+.leaflet-routing-instructions {
+    display: none !important; 
+}
+
+/* Memposisikan Ringkasan Rute (Waktu, Jarak) di sisi peta */
+.leaflet-routing-control {
+    background-color: var(--color-bg-card-default);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px var(--color-shadow);
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 100; 
+}
 
 /* --------------------
    RESPONSIVE DESIGN
@@ -905,10 +1044,16 @@ h1, h2, h3 {
         grid-column: span 2;
         text-align: center;
     }
-
-    .cta-banner {
-        flex-direction: column;
-        text-align: center;
+    
+    /* RESPONSIF KHUSUS TRAVEL MAP */
+    .route-grid {
+        grid-template-columns: 1fr;
+    }
+    .route-advisor-card {
+        padding: 1.5rem;
+    }
+    .map-container {
+        height: 400px;
     }
 }
 
@@ -945,6 +1090,8 @@ h1, h2, h3 {
     .team-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+    
+    
 }
 
 @media (max-width: 600px) {

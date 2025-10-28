@@ -4,54 +4,47 @@
 // KONFIGURASI GLOBAL
 // =================================================================================
 // GANTI INI DENGAN API KEY ANDA jika ingin menampilkan lapisan peta suhu OWM (optional).
-// Jika diisi 'YOUR_OWM_API_KEY', peta akan menampilkan marker fallback.
-const OWM_API_KEY = 'YOUR_OWM_API_KEY'; 
-
-// Data kota yang akan dimuat di halaman World Forecast
+const OWM_API_KEY = 'bd5e378503939ddaee76f12ad7a97608'; 
 const GLOBAL_CITIES = [
     'Tokyo', 'London', 'New Delhi', 'Cairo', 'Rio de Janeiro', 'Sydney', 'Paris', 'Dubai'
 ];
 
 
 // =================================================================================
-// DOM ELEMENTS & HELPERS (Hanya Home Page)
+// GLOBAL STATES (Untuk Peta Rute)
 // =================================================================================
-const searchForm = document.getElementById('search-form');
-const searchInput = document.getElementById('search-input');
-const homeWeatherResult = document.getElementById('weather-result');
-const currentLocationBtn = document.getElementById('current-location-btn'); 
+let routeMap;
+let routeControl;
+let weatherOverlay = null; // Menyimpan objek lapisan cuaca OWM
+let rainMarkers = []; // Menyimpan marker/lingkaran cuaca (digunakan untuk fallback)
 
 
-// --- HELPER FUNCTION: RENDER WEATHER CARD ---
+// =================================================================================
+// HELPER FUNCTIONS (Render & Fetch Umum)
+// =================================================================================
+
 /**
- * Merender kartu cuaca baru berdasarkan data yang diambil.
- * @param {object} data - Objek data cuaca dari backend API.
- * @param {HTMLElement} targetContainer - Container tempat kartu harus dirender.
+ * Merender kartu cuaca baru.
  */
 function renderWeatherCard(data, targetContainer) {
     const newWeatherCard = document.createElement('div');
-    
-    // Tentukan kelas dasar, tambahkan kelas gelap jika isNight=true
     let cardClasses = 'weather-card weather-card--dynamic';
     if (data.isNight) {
         cardClasses += ' weather-card--dark';
     }
     newWeatherCard.className = cardClasses;
 
-    // Hapus pesan error/loading dari area tombol HANYA pada home page
     if (targetContainer.id === 'weather-result') {
         const locationCtaElement = document.querySelector('.search-box'); 
         const existingMessage = locationCtaElement ? locationCtaElement.querySelector('.weather-message') : null;
         if (existingMessage) existingMessage.remove();
     }
 
-    // Struktur Kartu dengan Ikon Dinamis
     newWeatherCard.innerHTML = `
         <div class="city-name">${data.city}</div>
         
         <div class="temp-icon-wrapper">
             <span class="temp">${Math.round(data.temp)}°</span>
-            <!-- Menggunakan class Font Awesome yang dikirim dari server -->
             <span class="dynamic-icon"><i class="${data.icon}"></i></span> 
         </div>
         
@@ -67,58 +60,38 @@ function renderWeatherCard(data, targetContainer) {
         </div>
     `;
 
-    // Tambahkan kartu baru di awal kontainer (Terbaru di Depan)
     targetContainer.prepend(newWeatherCard);
 
-    // BATASI JUMLAH KARTU MAKSIMAL 6 HANYA UNTUK HOME PAGE
     if (targetContainer.id === 'weather-result') {
         const maxCards = 6;
-        // Hapus kartu terakhir (yang paling lama) jika melebihi batas
         while (targetContainer.children.length > maxCards) {
             targetContainer.removeChild(targetContainer.lastChild);
         }
     }
-    
-    // Pengaturan tata letak grid CSS untuk World Forecast Page (terutama jika memuat pertama kali)
-    if (targetContainer.id === 'world-weather-result') {
-         targetContainer.style.display = 'grid';
-         targetContainer.style.gridTemplateColumns = 'repeat(auto-fit, minmax(200px, 1fr))';
-         targetContainer.style.gap = '1.5rem';
-    }
 }
 
-
-// =================================================================================
-// CORE FUNCTION: FETCH WEATHER DATA
-// =================================================================================
 /**
- * Mengambil data cuaca dari API backend lokal.
- * @param {object} params - Parameter ({location: 'city'} atau {lat: X, lon: Y}).
- * @param {HTMLElement} targetContainer - Kontainer untuk merender hasil. Default: homeWeatherResult.
+ * Mengambil data cuaca standar (Home & World Forecast).
  */
-async function fetchWeather(params, targetContainer = homeWeatherResult) {
+async function fetchWeather(params, targetContainer = document.getElementById('weather-result')) {
     const queryParams = new URLSearchParams(params).toString();
     const locationCtaElement = document.querySelector('.search-box'); 
     let loadingCard = null;
     let isHomePage = targetContainer.id === 'weather-result';
 
     if (isHomePage) {
-        // Hapus pesan error/sukses sebelumnya
         const existingMessage = locationCtaElement ? locationCtaElement.querySelector('.weather-message') : null;
         if (existingMessage) existingMessage.remove();
     }
 
-
-    // Tampilkan loading state hanya jika ini pencarian tunggal di home page
     if (isHomePage && !params.lat && !params.lon) {
         loadingCard = document.createElement('div');
         loadingCard.className = 'weather-card loading-card';
-        loadingCard.innerHTML = '<h2>Loading...</h2><i class="fas fa-spinner fa-spin fa-2x mt-4 text-blue-400"></i>';
+        loadingCard.innerHTML = '<h2>Memuat...</h2><i class="fas fa-spinner fa-spin fa-2x mt-4 text-blue-400"></i>';
         targetContainer.prepend(loadingCard);
     }
     
-    // Hapus placeholder kartu cuaca default (hanya di home page, jika ada)
-    if (isHomePage) {
+    if (isHomePage && document.querySelectorAll('.weather-card--default')) {
          document.querySelectorAll('.weather-card--default').forEach(card => card.remove());
     }
 
@@ -126,7 +99,6 @@ async function fetchWeather(params, targetContainer = homeWeatherResult) {
         const response = await fetch(`http://localhost:3000/api/weather?${queryParams}`);
         const data = await response.json();
 
-        // Hapus loading state
         if (loadingCard && document.contains(loadingCard)) {
             targetContainer.removeChild(loadingCard);
         }
@@ -134,7 +106,7 @@ async function fetchWeather(params, targetContainer = homeWeatherResult) {
         if (response.status !== 200) {
             const errorCard = document.createElement('div');
             errorCard.className = 'weather-card error-card';
-            const errorCityName = params.location || (params.lat ? 'Current Location' : 'Unknown');
+            const errorCityName = params.location || (params.lat ? 'Lokasi Saat Ini' : 'Tidak Dikenal');
             errorCard.innerHTML = `<h2>${errorCityName}</h2><p>Error ${response.status}: ${data.error || 'Gagal mengambil data cuaca.'}</p>`;
             targetContainer.prepend(errorCard);
             return;
@@ -149,7 +121,6 @@ async function fetchWeather(params, targetContainer = homeWeatherResult) {
             targetContainer.removeChild(loadingCard);
         }
         
-        // Tampilkan pesan error di bawah tombol pencarian (Hanya di home page)
         if (isHomePage && locationCtaElement) {
             const errorText = document.createElement('p');
             errorText.className = 'weather-message text-red-500 mt-2 text-sm';
@@ -170,24 +141,15 @@ async function fetchWeather(params, targetContainer = homeWeatherResult) {
 // LOGIC KHUSUS PETA DUNIA (world_forecast.html)
 // =================================================================================
 
-/**
- * Menginisialisasi peta Leaflet untuk halaman World Forecast.
- */
 function initWorldMap() {
     const mapElement = document.getElementById('temperature-map');
     
-    // Pastikan Leaflet sudah dimuat
     if (!mapElement || typeof L === 'undefined') {
-        console.warn('Leaflet library belum dimuat atau elemen peta tidak ditemukan.');
         return;
     }
     
-    const warningText = document.querySelector('.weather-map-container p.mt-2');
-    if (warningText) warningText.style.display = 'none';
-
     const map = L.map('temperature-map').setView([20, 0], 2);
-
-    // 1. Tile Layer (Gaya Peta Dasar Modern) - CartoDB Positron
+    
     const baseLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
         maxZoom: 18,
@@ -198,29 +160,23 @@ function initWorldMap() {
          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     });
 
-
-    // 2. Lapisan Data Suhu (Membutuhkan OWM API Key)
     let tempOverlayLayer;
     let baseLayers = { "CARTO Light": baseLayer, "OSM Standard": osmLayer };
     let overlayLayers = {};
+    const warningText = document.querySelector('.weather-map-container p.mt-2');
     
     if (OWM_API_KEY && OWM_API_KEY !== 'YOUR_OWM_API_KEY') {
         tempOverlayLayer = L.tileLayer('https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=' + OWM_API_KEY, {
             maxZoom: 18,
             opacity: 0.7, 
             attribution: 'Suhu &copy; <a href="https://openweathermap.org">OWM</a>'
-        }).addTo(map);
+        });
         overlayLayers["Suhu Global"] = tempOverlayLayer;
         
     } else {
-        // Fallback: Tampilkan Marker untuk kota-kota utama jika API Key tidak ada
-        console.warn("PERINGATAN: OpenWeatherMap API Key tidak ditemukan. Menampilkan marker fallback.");
-        
         const fallbackMarkers = [
             [35.6895, 139.6917, "Tokyo"], [51.5074, -0.1278, "London"],
-            [28.6139, 77.2090, "New Delhi"], [30.0444, 31.2357, "Cairo"],
-            [-22.9068, -43.1729, "Rio de Janeiro"], [-33.8688, 151.2093, "Sydney"],
-            [48.8566, 2.3522, "Paris"], [25.2048, 55.2708, "Dubai"],
+            [28.6139, 77.2090, "New Delhi"], [-6.2088, 106.8456, "Jakarta"]
         ];
 
         fallbackMarkers.forEach(coord => {
@@ -242,151 +198,255 @@ function initWorldMap() {
 // =================================================================================
 // LOGIC KHUSUS PETA PERJALANAN (travel_map.html)
 // =================================================================================
-let routeMap;
-let routeControl;
 
 /**
- * Inisialisasi peta dan event handler untuk halaman Travel Advisor.
+ * Menghapus semua marker cuaca lama dan lapisan overlay cuaca.
  */
-function initTravelMap() {
-    const mapElement = document.getElementById('map-route');
-    const routeForm = document.getElementById('route-form');
-    const startInput = document.getElementById('start-location');
-    const endInput = document.getElementById('end-location');
-    const advisorOutput = document.getElementById('ai-advisor-output');
-    const advisorContent = document.getElementById('advisor-content');
-    const routeMessage = document.getElementById('route-message');
-
-    // Pastikan Leaflet dan Leaflet Routing Machine sudah dimuat
-    if (!mapElement || typeof L === 'undefined' || typeof L.Routing === 'undefined') {
-        console.error('Leaflet atau Leaflet Routing Machine belum dimuat.');
-        return;
+function clearRainMarkers() {
+    // 1. Hapus lapisan overlay cuaca OpenWeatherMap jika ada
+    if (weatherOverlay && routeMap.hasLayer(weatherOverlay)) {
+        routeMap.removeLayer(weatherOverlay);
+        weatherOverlay = null;
     }
-    
-    // Inisialisasi Peta
-    routeMap = L.map('map-route').setView([-6.2, 106.8], 10); // Default ke Jakarta
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(routeMap);
-
-    // Event Handler Form
-    routeForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const start = startInput.value.trim();
-        const end = endInput.value.trim();
-
-        if (!start || !end) {
-            routeMessage.textContent = "Mohon isi kedua lokasi awal dan tujuan.";
-            return;
-        }
-
-        routeMessage.textContent = 'Menganalisis rute dan cuaca...';
-        advisorOutput.style.display = 'none';
-
-        try {
-            // 1. Ambil data rute dan cuaca dari server
-            const response = await fetch(`http://localhost:3000/api/route-weather?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
-            const data = await response.json();
-            
-            if (response.status !== 200) {
-                 routeMessage.textContent = `Error: ${data.error || 'Gagal mengambil data rute.'}`;
-                 return;
-            }
-            
-            // 2. Tampilkan Rute di Peta (Menggunakan Leaflet Routing Machine)
-            if (routeControl) {
-                routeMap.removeControl(routeControl);
-            }
-            
-            routeControl = L.Routing.control({
-                waypoints: [
-                    L.latLng(data.start.lat, data.start.lon),
-                    L.latLng(data.end.lat, data.end.lon)
-                ],
-                routeWhileDragging: true,
-                language: 'en',
-                show: false, // OPSI BARU: Menyembunyikan panel instruksi rute
-                routeLine: function(route) {
-                    // Kustomisasi garis rute jika diperlukan (contoh: garis lebih tebal)
-                    return L.polyline(route.coordinates, { color: '#1e90ff', weight: 6 });
-                },
-                // Hapus widget instruksi rute dari peta
-                summaryTemplate: '<h2>{name}</h2><h3>{distance}, {time}</h3>', 
-                // Menggunakan container kosong untuk instruksi.
-                // Namun, cara terbaik adalah menyembunyikannya melalui CSS atau menggunakan container kosong
-            }).on('routesfound', function(e) {
-                // Sembunyikan panel instruksi rute setelah rute ditemukan
-                const routingContainer = routeControl.getContainer();
-                if (routingContainer) {
-                    const instructionsPanel = routingContainer.querySelector('.leaflet-routing-container');
-                    if (instructionsPanel) {
-                        instructionsPanel.style.display = 'none';
-                    }
-                }
-                
-                // Pindahkan ringkasan rute (jarak dan waktu) ke atas peta.
-                // Leaflet Routing Machine secara default menempatkan summary di bagian atas.
-                // Jika masih terlihat, kita sembunyikan semua elemen routing container kecuali peta itu sendiri.
-                
-            }).addTo(routeMap);
-
-            // Set Peta untuk menampung seluruh rute
-            routeMap.fitBounds(L.latLngBounds([
-                [data.start.lat, data.start.lon],
-                [data.end.lat, data.end.lon]
-            ]).pad(0.5)); 
-
-            // Tandai titik tengah (midpoint) tempat perkiraan cuaca dihitung
-            L.marker([data.midpoint.lat, data.midpoint.lon])
-                .addTo(routeMap)
-                .bindPopup(`<b>Titik Tengah Perkiraan Cuaca</b><br>Kondisi: ${data.advice.majorCondition}`)
-                .openPopup();
-                
-            // 3. Tampilkan Rekomendasi AI
-            renderAIAdvice(data.advice);
-            routeMessage.textContent = `Rute dari ${data.start.name} ke ${data.end.name} siap ditinjau.`;
-
-
-        } catch (error) {
-            console.error("Route analysis error:", error);
-            routeMessage.textContent = 'Gagal memproses rute. Pastikan server.js berjalan dan lokasi valid.';
+    // 2. Hapus fallback markers (jika digunakan)
+    rainMarkers.forEach(marker => {
+        if (routeMap && routeMap.hasLayer(marker)) {
+            routeMap.removeLayer(marker);
         }
     });
+    rainMarkers = [];
 }
 
 /**
- * Merender rekomendasi barang bawaan dari AI Advisor.
- * @param {object} advice - Objek yang berisi rekomendasi dari backend.
+ * Helper untuk menentukan warna peta berdasarkan kondisi dan suhu.
+ * Ini sekarang hanya berfungsi sebagai fallback jika OWM_API_KEY tidak valid
  */
-function renderAIAdvice(advice) {
+function getWeatherColor(temp, wmoCode) {
+    // Kode WMO untuk hujan atau badai (51-82, 95-99)
+    const isRainy = (wmoCode >= 51 && wmoCode <= 82) || wmoCode >= 95;
+
+    if (isRainy) {
+        // BIRU: Hujan
+        return { color: '#1e90ff', fill: '#4d9eff', opacity: 0.7 }; 
+    } 
+    
+    // Suhu Panas (di atas 30C)
+    if (temp >= 30) {
+        // MERAH: Panas
+        return { color: '#dc2626', fill: '#f87171', opacity: 0.6 }; 
+    } 
+    
+    // Suhu Normal/Sedang (20C - 30C)
+    if (temp >= 20) {
+        // KUNING: Sedang/Cerah
+        return { color: '#facc15', fill: '#fde047', opacity: 0.6 }; 
+    } 
+    
+    // Suhu Dingin (di bawah 20C) atau kondisi lain
+    return { color: '#6b7280', fill: '#d1d5db', opacity: 0.5 }; // Abu-abu (Dingin/Netral)
+}
+
+/**
+ * Merender prakiraan cuaca jam per jam (maks 3 jam) dengan visualisasi kartu mini.
+ */
+function renderHourlyForecast(forecast) {
+    let html = '';
+    html += '<div style="display: flex; gap: 10px; justify-content: start; border-top: 1px solid var(--color-border); padding-top: 1rem; margin-top: 1rem; overflow-x: auto;">';
+    
+    const limitedForecast = forecast.slice(0, 3); // Batasi 3 jam
+
+    limitedForecast.forEach(f => {
+        const temp = Math.round(f.temp);
+        let iconColor = '#888'; 
+        if (f.rain > 0.1) {
+            iconColor = '#1e90ff';
+        } else if (temp >= 30) {
+            iconColor = '#dc2626'; // Merah
+        } else if (temp >= 20) {
+            iconColor = '#facc15'; // Kuning
+        }
+        
+        // Memastikan visualisasi konsisten dengan Home Page
+        html += `
+            <div class="weather-card" style="width: 110px; height: auto; padding: 10px; flex-shrink: 0; box-shadow: none; border: 1px solid #eee;">
+                <p style="font-weight: 600; font-size: 0.9rem; margin: 0; color: var(--color-text-dark);">${f.hour.toString().padStart(2, '0')}:00</p>
+                <i class="${f.icon}" style="font-size: 1.8rem; color: ${iconColor}; margin: 5px 0;"></i>
+                <p style="font-size: 1.1rem; font-weight: 700; margin: 0;">${temp}°C</p>
+                ${f.rain > 0.1 ? `<p style="font-size: 0.7rem; color: #1e90ff; font-weight: 600;">Hujan (${f.rain} mm)</p>` : '<p style="font-size: 0.7rem; color: #ccc;">Kering</p>'}
+            </div>
+        `;
+    });
+    html += '</div>';
+    return html;
+}
+
+function renderAIAdvice(advice, rainPoints) {
     const advisorOutput = document.getElementById('ai-advisor-output');
     const advisorContent = document.getElementById('advisor-content');
     
     let html = '';
     
-    // Saran 1: Payung
+    let recommendationIcon = 'fas fa-umbrella-beach';
+    let recommendationText = 'Cuaca Cenderung Cerah. Payung tidak wajib.';
+    let recommendationClass = '';
+
     if (advice.needsUmbrella) {
-        html += `<div class="item-recommendation alert"><i class="fas fa-exclamation-triangle"></i> Bawa Payung atau Jas Hujan (Ada Potensi Hujan)</div>`;
-    } else {
-        html += `<div class="item-recommendation"><i class="fas fa-umbrella-beach"></i> Cuaca Cenderung Cerah. Payung tidak wajib.</div>`;
-    }
-    
-    // Saran 2: Jas Hujan/ Mantel Berat
-    if (advice.needsRainCoat) {
-        html += `<div class="item-recommendation alert"><i class="fas fa-cloud-showers-heavy"></i> Disarankan membawa Jas Hujan/Mantel Tebal (Curah hujan tinggi: ${advice.highestPrecipitation.toFixed(1)} mm).</div>`;
-    } else if (advice.needsUmbrella) {
-        html += `<div class="item-recommendation"><i class="fas fa-cloud-sun-rain"></i> Hujan Ringan diperkirakan, payung sudah cukup.</div>`;
+        recommendationClass = 'alert';
+        recommendationIcon = advice.needsRainCoat ? 'fas fa-cloud-showers-heavy' : 'fas fa-umbrella';
+        recommendationText = advice.needsRainCoat 
+            ? `Wajib Bawa Jas Hujan: Hujan Lebat (${advice.highestPrecipitation} mm) diprediksi di beberapa titik rute.`
+            : `Sangat Disarankan: Bawa Payung atau Jas Hujan ringan untuk potensi hujan.`;
     }
 
-    // Saran 3: Kondisi Umum
-    const conditionIcon = advice.needsUmbrella ? 'fas fa-cloud-rain' : 'fas fa-sun';
-    const conditionText = `Prakiraan Utama: ${advice.majorCondition} di sepanjang rute.`;
+    html += `
+        <div class="item-recommendation ${recommendationClass}" style="margin-bottom: 15px;">
+            <i class="${recommendationIcon}" style="font-size: 1.5rem; color: ${advice.needsUmbrella ? '#dc2626' : '#28a745'};"></i>
+            <span>${recommendationText}</span>
+        </div>
+        <p class="mt-2 text-sm text-gray-500">
+            *Analisis didasarkan pada prakiraan 3 jam ke depan dari waktu saat ini.
+        </p>
+    `;
     
-    html += `<div class="item-recommendation"><i class="${conditionIcon}"></i> ${conditionText}</div>`;
-    html += `<p class="mt-2 text-xs text-gray-500">Analisis didasarkan pada prakiraan 5 hari ke depan dari tanggal ${advice.startDate}.</p>`;
+    html += '<h5 style="font-weight: 700; margin-top: 1.5rem; color: var(--color-text-dark); font-size: 1.1rem;">Prakiraan Cuaca 3 Jam ke Depan:</h5>';
+    html += renderHourlyForecast(advice.forecast);
 
     advisorContent.innerHTML = html;
     advisorOutput.style.display = 'block';
+}
+
+async function fetchRouteWeatherAndAdvice(start, end, startTime) {
+    const routeMessage = document.getElementById('route-message');
+    const advisorOutput = document.getElementById('ai-advisor-output');
+
+    routeMessage.textContent = 'Menganalisis rute dan cuaca...';
+    advisorOutput.style.display = 'none';
+    clearRainMarkers();
+    
+    const queryParams = new URLSearchParams({
+        start: start,
+        end: end,
+        startTime: startTime 
+    }).toString();
+
+    try {
+        const response = await fetch(`http://localhost:3000/api/route-weather?${queryParams}`);
+        const data = await response.json();
+
+        if (response.status !== 200) {
+            routeMessage.textContent = `Error: ${data.error || 'Gagal mengambil data cuaca rute.'}`;
+            if (routeControl) routeMap.removeControl(routeControl);
+            routeControl = null;
+            return;
+        }
+
+        // 1. Render Peta Rute
+        const waypoints = [
+            L.latLng(data.start.lat, data.start.lon),
+            L.latLng(data.end.lat, data.end.lon)
+        ];
+        
+        if (routeControl) {
+            routeMap.removeControl(routeControl);
+        }
+
+        routeControl = L.Routing.control({
+            waypoints: waypoints,
+            routeWhileDragging: false,
+            show: false, // Sembunyikan panel instruksi
+            lineOptions: {
+                styles: [{ color: '#1e90ff', weight: 6, opacity: 0.7 }]
+            },
+            showAlternatives: false,
+        }).addTo(routeMap);
+        
+        // 2. Visualisasi Warna Cuaca di Peta
+        routeControl.on('routesfound', function(e) {
+            const bbox = e.routes[0].coordinates.reduce((bounds, coord) => {
+                return bounds.extend(coord);
+            }, L.latLngBounds(waypoints[0], waypoints[1]));
+            routeMap.fitBounds(bbox.pad(0.5)); // Zoom out sedikit
+
+            // Sembunyikan instruksi rute yang tersisa
+            const routingContainer = routeControl.getContainer();
+            if (routingContainer) {
+                 const instructions = routingContainer.querySelector('.leaflet-routing-instructions');
+                 if (instructions) instructions.style.display = 'none';
+                 
+                 const summaryPanel = routingContainer.querySelector('.leaflet-routing-alt');
+                 if (summaryPanel) {
+                     // Atur posisi summary box
+                     summaryPanel.style.cssText = 'position: absolute; top: 10px; left: 10px; padding: 10px; background-color: white; border-radius: 8px; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 90%;';
+                 }
+            }
+            
+            // --- Logika Visualisasi Lapisan OWM ---
+            if (OWM_API_KEY && OWM_API_KEY !== 'YOUR_OWM_API_KEY') {
+                // Gunakan Lapisan Peta Cuaca dari OWM (visualisasi non-kaku)
+                // Kita akan menggunakan lapisan Curah Hujan ('precipitation') untuk menunjukkan area basah.
+                weatherOverlay = L.tileLayer('https://tile.openweathermap.org/map/precipitation/{z}/{x}/{y}.png?appid=' + OWM_API_KEY, {
+                    maxZoom: 18,
+                    opacity: 0.6,
+                    attribution: 'Cuaca &copy; <a href="https://openweathermap.org">OWM</a>'
+                }).addTo(routeMap);
+
+                routeMessage.textContent = `Rute dari ${data.start.name} ke ${data.end.name} siap ditinjau. (Lapisan curah hujan aktif)`;
+                
+            } else if (data.rainPoints && data.rainPoints.length > 0) {
+                 // --- FALLBACK VISUAL (Jika API Key OWM tidak valid) ---
+                 // Jika API Key tidak ada, gunakan kembali L.circle untuk visualisasi titik
+                data.rainPoints.forEach(p => {
+                    const colorProps = getWeatherColor(parseFloat(p.temp), parseInt(p.wmoCode));
+                    
+                    const circle = L.circle([p.lat, p.lon], {
+                        radius: 2000, // Radius 2000 meter (2 km)
+                        color: colorProps.color, 
+                        fillColor: colorProps.fill,
+                        fillOpacity: colorProps.opacity,
+                        weight: 2
+                    }).addTo(routeMap);
+                    
+                    circle.bindPopup(`
+                        <strong>Zona Cuaca Utama (Fallback)</strong><br>
+                        Waktu: ${new Date(p.time).getHours().toString().padStart(2, '0')}:00<br>
+                        Kondisi: ${p.condition} (${p.temp}°C)<br>
+                        ${p.precipitation > 0.1 ? `Curah Hujan: ${p.precipitation} mm` : 'Kondisi Kering'}
+                    `);
+                    
+                    rainMarkers.push(circle); // Simpan objek L.circle
+                });
+                routeMessage.textContent = `Rute dari ${data.start.name} ke ${data.end.name} siap ditinjau. (Visualisasi titik aktif - perlukan OWM Key)`;
+            } else {
+                 routeMessage.textContent = `Rute dari ${data.start.name} ke ${data.end.name} siap ditinjau. (Cuaca cerah)`;
+            }
+        });
+        
+        // 3. Render Rekomendasi AI
+        renderAIAdvice(data.advice, data.rainPoints);
+
+    } catch (error) {
+        console.error('Route fetch error:', error);
+        routeMessage.textContent = 'Terjadi kesalahan jaringan atau lokasi tidak ditemukan.';
+    }
+}
+
+
+function initTravelMap() {
+    const mapElement = document.getElementById('map-route');
+    if (!mapElement || typeof L === 'undefined') return;
+
+    if (routeMap) {
+        routeMap.remove(); 
+    }
+    // Set view ke Jakarta (sebagai default Indonesia)
+    routeMap = L.map('map-route').setView([-6.2088, 106.8456], 10); 
+
+    // Tambahkan Tile Layer (CARTO Light untuk tampilan modern)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19
+    }).addTo(routeMap);
 }
 
 
@@ -396,9 +456,12 @@ function renderAIAdvice(advice) {
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // --- Logika untuk Home Page ---
-    // Pengecekan elemen untuk menghindari TypeError saat script dimuat di halaman lain
+    // --- Logika Home Page ---
+    const searchForm = document.getElementById('search-form');
     if (searchForm) {
+        const searchInput = document.getElementById('search-input');
+        const homeWeatherResult = document.getElementById('weather-result');
+
         searchForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const location = searchInput.value.trim();
@@ -413,6 +476,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Logika Geolocation (Home Page) ---
+    const currentLocationBtn = document.getElementById('current-location-btn'); 
     if (currentLocationBtn) {
         currentLocationBtn.addEventListener('click', () => {
             const locationCtaElement = document.querySelector('.search-box'); 
@@ -427,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     (position) => {
                         const lat = position.coords.latitude;
                         const lon = position.coords.longitude;
-                        fetchWeather({ lat: lat, lon: lon }, homeWeatherResult); 
+                        fetchWeather({ lat: lat, lon: lon }, document.getElementById('weather-result')); 
                         
                         currentLocationBtn.disabled = false;
                         currentLocationBtn.innerHTML = '<i class="fas fa-location-arrow"></i> Gunakan Lokasi Saat Ini';
@@ -456,10 +521,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // --- Logika untuk World Forecast Page ---
+    // --- Logika World Forecast Page ---
     const worldContainer = document.getElementById('world-weather-result');
     if (worldContainer) {
-        // 1. Muat Kartu Kota Global
         const loadingCard = worldContainer.querySelector('.loading-card');
         if(loadingCard) loadingCard.remove();
         
@@ -467,14 +531,31 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchWeather({ location: city }, worldContainer);
         });
 
-        // 2. Inisialisasi Peta
         initWorldMap();
     }
     
-    // --- Logika untuk Travel Map Page ---
+    // --- Logika Travel Map Page ---
     const mapRouteElement = document.getElementById('map-route');
     if (mapRouteElement) {
-        // Panggil inisialisasi peta dan event handler rute
-        initTravelMap();
+        initTravelMap(); // Inisialisasi peta
+
+        const routeForm = document.getElementById('route-form');
+        const startInput = document.getElementById('start-location');
+        const endInput = document.getElementById('end-location');
+
+        routeForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const start = startInput.value.trim();
+            const end = endInput.value.trim();
+            
+            // 1. Ambil jam saat ini secara otomatis (HH)
+            const startHour = new Date().getHours(); 
+
+            if (start && end) {
+                fetchRouteWeatherAndAdvice(start, end, startHour);
+            } else {
+                document.getElementById('route-message').textContent = 'Mohon masukkan Lokasi Awal dan Tujuan yang valid.';
+            }
+        });
     }
 });

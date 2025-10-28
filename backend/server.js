@@ -109,7 +109,7 @@ async function geocodeLocation(locationName) {
     
     // Ambil nama kota utama
     let name = data.display_name.split(',')[0].trim();
-    if (!name || name === data.lat) { // Fallback jika nama terlalu spesifik/hanya koordinat
+    if (!name || name === data.lat) { 
         name = locationName; 
     }
 
@@ -119,7 +119,7 @@ async function geocodeLocation(locationName) {
 // --- API Route Cuaca Standar (Untuk Home dan World Forecast) ---
 app.get('/api/weather', async (req, res) => {
     let { location, lat, lon } = req.query; 
-    let geoLoc = {}; // Objek untuk menyimpan hasil geocoding jika ada
+    let geoLoc = {}; 
 
     try {
         if (location) {
@@ -137,13 +137,10 @@ app.get('/api/weather', async (req, res) => {
             params: {
                 latitude: lat,
                 longitude: lon,
-                // Meminta data yang diperlukan, termasuk 'is_day' dan prakiraan harian 7 hari
                 current: 'temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,is_day',
-                daily: 'weather_code,temperature_2m_max,temperature_2m_min', // Tambahkan prakiraan harian
                 temperature_unit: 'celsius',
                 wind_speed_unit: 'ms',
-                timezone: 'auto',
-                forecast_days: 7 // Meminta prakiraan 7 hari
+                timezone: 'auto'
             }
         });
 
@@ -152,8 +149,7 @@ app.get('/api/weather', async (req, res) => {
         }
         
         const current = weatherResponse.data.current;
-        const daily = weatherResponse.data.daily;
-
+        
         if (current.weather_code === undefined || current.is_day === undefined) {
              return res.status(500).json({ error: 'Missing critical weather codes in API response.' });
         }
@@ -172,9 +168,7 @@ app.get('/api/weather', async (req, res) => {
             icon: iconClass, 
             humidity: current.relative_humidity_2m,
             windSpeed: current.wind_speed_10m,
-            isNight: isNight, 
-            // Sertakan prakiraan harian untuk analisis rute jika dibutuhkan di masa depan
-            dailyForecast: daily 
+            isNight: isNight 
         });
 
     } catch (error) {
@@ -184,9 +178,9 @@ app.get('/api/weather', async (req, res) => {
 });
 
 
-// --- API Route Khusus Analisis Rute ---
+// --- API Route Khusus Analisis Rute (Prakiraan 3 Jam & Zona Warna) ---
 app.get('/api/route-weather', async (req, res) => {
-    const { start, end } = req.query;
+    const { start, end, startTime } = req.query;
 
     if (!start || !end) {
         return res.status(400).json({ error: 'Start and end location parameters are required.' });
@@ -197,76 +191,125 @@ app.get('/api/route-weather', async (req, res) => {
         const locA = await geocodeLocation(start);
         const locB = await geocodeLocation(end);
 
-        // 2. Hitung Titik Tengah (Midpoint)
-        // Logika sederhana: rata-rata koordinat untuk perkiraan cuaca "di sepanjang rute"
-        const midLat = (locA.lat + locB.lat) / 2;
-        const midLon = (locA.lon + locB.lon) / 2;
+        // 2. Tentukan Titik Cuaca Rute (4 Titik: Awal, Tengah 1, Tengah 2, Akhir)
+        const midLat1 = (locA.lat * 2 + locB.lat) / 3;
+        const midLon1 = (locA.lon * 2 + locB.lon) / 3;
+        const midLat2 = (locA.lat + locB.lat * 2) / 3;
+        const midLon2 = (locA.lon + locB.lon * 2) / 3;
 
-        // 3. Ambil Prakiraan Cuaca 7 Hari di Titik Tengah
-        const weatherResponse = await axios.get(OPEN_METEO_BASE_URL, {
-            params: {
-                latitude: midLat,
-                longitude: midLon,
-                daily: 'weather_code,precipitation_sum,temperature_2m_max,temperature_2m_min', 
-                temperature_unit: 'celsius',
-                timezone: 'auto',
-                forecast_days: 5 // Ambil prakiraan 5 hari ke depan untuk perjalanan
-            }
-        });
+        const checkPoints = [
+            { lat: locA.lat, lon: locA.lon, name: locA.name },
+            { lat: midLat1, lon: midLon1, name: 'Midpoint 1' },
+            { lat: midLat2, lon: midLon2, name: 'Midpoint 2' },
+            { lat: locB.lat, lon: locB.lon, name: locB.name },
+        ];
         
-        if (!weatherResponse.data || !weatherResponse.data.daily) {
-             return res.status(500).json({ error: 'Failed to retrieve daily forecast for route analysis.' });
-        }
+        // Waktu mulai perjalanan (dalam jam)
+        const startHour = startTime ? parseInt(startTime) : new Date().getHours();
         
-        const dailyData = weatherResponse.data.daily;
-        const dates = dailyData.time;
-        const wmoCodes = dailyData.weather_code;
-        const precipitation = dailyData.precipitation_sum;
-        
+        const hourlyForecasts = [];
+        let rainPoints = [];
         let shouldCarryUmbrella = false;
-        let shouldCarryCoat = false;
+        let finalMajorCondition = '';
         let highestRain = 0;
-        let majorCondition = '';
         
-        // Analisis Sederhana: Tinjau Prakiraan 5 Hari Pertama (Asumsi lama perjalanan)
-        for (let i = 0; i < wmoCodes.length; i++) {
-            const code = wmoCodes[i];
-            const rain = precipitation[i];
+        // Durasi prakiraan (3 jam sesuai permintaan)
+        const FORECAST_DURATION = 3; 
+
+        // 3. Ambil Prakiraan Cuaca Jam Per Jam untuk SETIAP Titik Cuaca
+        for (const point of checkPoints) {
+            const weatherResponse = await axios.get(OPEN_METEO_BASE_URL, {
+                params: {
+                    latitude: point.lat,
+                    longitude: point.lon,
+                    // Meminta suhu, kode cuaca, curah hujan, dan is_day
+                    hourly: 'weather_code,temperature_2m,precipitation,is_day', 
+                    temperature_unit: 'celsius',
+                    timezone: 'auto',
+                    forecast_days: 1 
+                }
+            });
             
-            // Cek hujan (Code 51-82)
-            if (code >= 51 && code <= 82) {
-                shouldCarryUmbrella = true;
-                if (rain > highestRain) highestRain = rain;
-                if (code >= 63) { // Moderate to heavy rain
-                    shouldCarryCoat = true; 
+            if (!weatherResponse.data || !weatherResponse.data.hourly) {
+                 continue; 
+            }
+            
+            const hourlyData = weatherResponse.data.hourly;
+            
+            // Cari indeks waktu mulai
+            const startIndex = hourlyData.time.findIndex(timeStr => {
+                const hour = new Date(timeStr).getHours();
+                return hour === startHour;
+            });
+            
+            if (startIndex === -1) {
+                continue;
+            }
+            
+            // Ambil data untuk 3 jam ke depan
+            for (let i = 0; i < FORECAST_DURATION; i++) {
+                const index = startIndex + i;
+                if (index >= hourlyData.time.length) break; 
+
+                const wmoCode = hourlyData.weather_code[index];
+                const rain = hourlyData.precipitation[index];
+                const temp = hourlyData.temperature_2m[index];
+                const isDay = hourlyData.is_day[index] === 1;
+                const timeStr = hourlyData.time[index];
+                const hour = new Date(timeStr).getHours();
+                
+                const { conditionText, iconClass } = mapWeatherCode(wmoCode, isDay);
+                
+                // Analisis Curah Hujan/Kondisi
+                if (rain > 0.5 || (wmoCode >= 51 && wmoCode <= 82) || wmoCode === 95 || wmoCode === 96 || wmoCode === 99) {
+                    shouldCarryUmbrella = true;
+                    if (rain > highestRain) highestRain = rain;
+                }
+                
+                // Kumpulkan titik cuaca untuk visualisasi peta (Ambil data dari jam pertama)
+                if (i === 0) {
+                     rainPoints.push({
+                        lat: point.lat, 
+                        lon: point.lon, 
+                        time: timeStr,
+                        condition: conditionText,
+                        precipitation: rain.toFixed(1),
+                        // Kirim suhu untuk penentuan warna peta (Merah/Kuning/Biru)
+                        temp: temp.toFixed(1), 
+                        wmoCode: wmoCode // Kirim WMO code untuk penentuan kondisi
+                    });
+                }
+                
+                // Kumpulkan prakiraan jam per jam (hanya dari titik awal untuk analisis AI)
+                if (point.name === locA.name) {
+                    hourlyForecasts.push({
+                        hour: hour,
+                        condition: conditionText,
+                        icon: iconClass,
+                        temp: temp,
+                        rain: rain.toFixed(1)
+                    });
+                    
+                    if (i === 0) finalMajorCondition = conditionText;
                 }
             }
-            
-            // Tentukan kondisi cuaca utama (hanya ambil kondisi terburuk)
-            const { conditionText } = mapWeatherCode(code, true);
-            if (conditionText.includes('Rain') || conditionText.includes('Thunderstorm')) {
-                majorCondition = conditionText;
-            }
         }
         
-        if (highestRain > 10) shouldCarryCoat = true;
-        
+        // Analisis akhir AI
         const finalAdvice = {
             needsUmbrella: shouldCarryUmbrella,
-            needsRainCoat: shouldCarryCoat,
+            needsRainCoat: highestRain >= 5.0,
             highestPrecipitation: highestRain,
-            majorCondition: majorCondition || mapWeatherCode(wmoCodes[0], true).conditionText,
-            startDate: dates[0]
+            majorCondition: finalMajorCondition,
+            forecast: hourlyForecasts,
         };
-
 
         // 4. Balas ke Frontend
         res.json({
             start: locA,
             end: locB,
-            midpoint: { lat: midLat, lon: midLon },
+            rainPoints: rainPoints, // rainPoints sekarang membawa suhu dan WMO code
             advice: finalAdvice,
-            forecast: dailyData
         });
 
     } catch (error) {
