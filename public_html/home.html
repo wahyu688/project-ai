@@ -21,9 +21,10 @@
                 <a href="about.html" class="nav__link">About Us</a>
             </nav>
 
-            <button class="btn btn--primary">
+            <!-- Tombol OpenMaps sekarang mengarah ke halaman travel_map.html -->
+            <a href="travel_map.html" class="btn btn--primary">
                 <i class="fas fa-map-marked-alt"></i> OpenMaps
-            </button>
+            </a>
         </div>
     </header>
 
@@ -105,15 +106,15 @@
                     <div class="sidebar-forecast">
                         <h2>World Forecast</h2>
                         <ul class="forecast-list forecast-list--mini">
-                            <li>AUSTRALIA <i class="fas fa-chevron-right arrow"></i></li>
-                            <li>INDONESIA <i class="fas fa-chevron-right arrow"></i></li>
-                            <li>UNITED KINGDOM <i class="fas fa-chevron-right arrow"></i></li>
+                            <li><a href="world_forecast.html">AUSTRALIA</a> <i class="fas fa-chevron-right arrow"></i></li>
+                            <li><a href="world_forecast.html">INDONESIA</a> <i class="fas fa-chevron-right arrow"></i></li>
+                            <li><a href="world_forecast.html">UNITED KINGDOM</a> <i class="fas fa-chevron-right arrow"></i></li>
                         </ul>
 
                         <h2>Weather Map</h2>
                         <div class="weather-map-placeholder">
                             <p>Map visualization area</p>
-                            <button class="btn btn--link">Explore All Location</button>
+                            <a href="world_forecast.html" class="btn btn--link">Explore All Location</a>
                         </div>
 
                         <h2>News</h2>
@@ -137,34 +138,12 @@
         </section>
 
         <section id="world-forecast" class="section section--world-forecast">
-            <div class="container">
+            <div class="container" style="text-align: center;">
                 <h2>World Forecast</h2>
-                <ul class="forecast-list forecast-list--large">
-                    <li class="forecast-item">
-                        <span class="country-code">AUS</span> <span class="country-name">AUSTRALIA</span> <i class="fas fa-chevron-right arrow"></i>
-                    </li>
-                    <li class="forecast-item">
-                        <span class="country-code">IDN</span> <span class="country-name">INDONESIA</span> <i class="fas fa-chevron-right arrow"></i>
-                    </li>
-                    <li class="forecast-item">
-                        <span class="country-code">SWE</span> <span class="country-name">SWEDEN</span> <i class="fas fa-chevron-right arrow"></i>
-                    </li>
-                    <li class="forecast-item">
-                        <span class="country-code">JPN</span> <span class="country-name">JAPAN</span> <i class="fas fa-chevron-right arrow"></i>
-                    </li>
-                    <li class="forecast-item">
-                        <span class="country-code">NLD</span> <span class="country-name">NETHERLANDS</span> <i class="fas fa-chevron-right arrow"></i>
-                    </li>
-                    <li class="forecast-item">
-                        <span class="country-code">CAN</span> <span class="country-name">CANADA</span> <i class="fas fa-chevron-right arrow"></i>
-                    </li>
-                    <li class="forecast-item">
-                        <span class="country-code">GBR</span> <span class="country-name">UNITED KINGDOM</span> <i class="fas fa-chevron-right arrow"></i>
-                    </li>
-                    <li class="forecast-item">
-                        <span class="country-code">USA</span> <span class="country-name">UNITED STATES</span> <i class="fas fa-chevron-right arrow"></i>
-                    </li>
-                </ul>
+                <p class="page-subtitle">Jelajahi prakiraan cuaca terkini di seluruh dunia, didukung oleh data real-time.</p>
+                <a href="world_forecast.html" class="btn btn--primary" style="margin-top: 1rem;">
+                    <i class="fas fa-globe-asia"></i> Lihat Prakiraan Global
+                </a>
             </div>
         </section>
     </main>

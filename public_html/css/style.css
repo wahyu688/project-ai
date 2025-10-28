@@ -399,6 +399,39 @@ h1, h2, h3 {
     box-shadow: 0 4px 10px rgba(30, 144, 255, 0.1);
 }
 
+/* Di css/style.css */
+
+/* Pastikan container peta memiliki ketinggian dan tidak ada overflow tersembunyi */
+#temperature-map {
+    margin-top: 1.5rem; /* Memberikan sedikit ruang di atas peta */
+    /* Pastikan tinggi diatur di HTML atau di sini, misal: height: 500px; */
+    /* border-radius dan box-shadow sudah diatur di HTML, jadi bisa dihapus di CSS jika ingin */
+}
+
+/* Penyesuaian responsif jika diperlukan */
+@media (max-width: 768px) {
+    #temperature-map {
+        height: 400px !important; /* Tinggi peta lebih kecil di perangkat mobile */
+    }
+}
+
+/* Untuk tampilan kontrol Leaflet agar serasi dengan tema Anda */
+/* Ini opsional, sesuaikan jika Anda ingin mengubah warna default Leaflet */
+.leaflet-control-layers,
+.leaflet-control-zoom,
+.leaflet-control-scale {
+    border-radius: 8px; /* Sudut lebih lembut */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Sedikit bayangan */
+    background-color: #fff; /* Latar belakang putih */
+    color: #333; /* Warna teks gelap */
+}
+
+.leaflet-control-layers-toggle {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="%23333"><path d="M10 12.5H22V19.5H10V12.5Z" opacity="0.4"/><path d="M4 8.5H28V23.5H4V8.5ZM6 10.5V21.5H26V10.5H6Z"/></svg>'); /* Icon custom jika ingin */
+    background-size: 26px; /* Ukuran icon */
+    background-position: center;
+}
+
 /* News List */
 .news-list {
     margin-bottom: 2rem;
