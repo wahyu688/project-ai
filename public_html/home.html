@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuacane - World Wide Weather Forecast</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Font Awesome CDN for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="container header__content">
+            <div class="logo">Cuacane</div>
+            
+            <nav class="nav">
+                <a href="research.html" class="nav__link">Research</a>
+                <a href="climate.html" class="nav__link">Climate</a>
+                <a href="service.html" class="nav__link">Service</a>
+                <a href="about.html" class="nav__link">About Us</a>
+            </nav>
+
+            <button class="btn btn--primary">
+                <i class="fas fa-map-marked-alt"></i> OpenMaps
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <section class="section section--hero">
+            <div class="container hero__grid">
+
+                <div class="hero__left">
+                    <h1 class="hero__title">Provide you a world wide weather forecast</h1>
+                    
+                    <p class="hero__description">
+                        The world's Most Accurate Forecaster. With extreme weather on the rise. It's so easy to receive the weather conditions in your current location.
+                    </p>
+
+                    <div class="search-box">
+                        <form id="search-form" class="search-form">
+                            <input type="text" id="search-input" placeholder="Search location" class="search-input" required>
+                            <button type="submit" class="btn btn--search"><i class="fas fa-search"></i> Search</button>
+                        </form>
+                        <button id="current-location-btn" class="btn btn--link mt-2">
+                             <i class="fas fa-location-arrow"></i> Use Current Location
+                        </button>
+                    </div>
+
+                    <div class="recent-places">
+                        <h3>Recent Places</h3>
+                        <div class="weather-cards-container" id="weather-result">
+                            <!-- Tempat hasil pencarian dinamis dari script.js akan ditambahkan di sini -->
+                            
+                            <!-- Kartu Placeholder Awal -->
+                            <div class="weather-card weather-card--default">
+                                <div class="city-name">New York</div>
+                                <div class="temp">12°</div>
+                                <div class="condition">Sunny</div>
+                                <div class="details-row">
+                                    <span class="detail-item">
+                                        <i class="fas fa-tint"></i> <span class="detail-label">80%</span>
+                                    </span>
+                                    <span class="detail-item">
+                                        <i class="fas fa-wind"></i> <span class="detail-label">5 m/s</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="weather-card weather-card--default">
+                                <div class="city-name">Gotham</div>
+                                <div class="temp">14°</div>
+                                <div class="condition">Cloudy</div>
+                                <div class="details-row">
+                                    <span class="detail-item">
+                                        <i class="fas fa-tint"></i> <span class="detail-label">75%</span>
+                                    </span>
+                                    <span class="detail-item">
+                                        <i class="fas fa-wind"></i> <span class="detail-label">2 m/s</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="weather-card weather-card--default weather-card--dark">
+                                <div class="city-name">Meadowport</div>
+                                <div class="temp">11°</div>
+                                <div class="condition">Mostly Clear</div>
+                                <div class="details-row">
+                                    <span class="detail-item">
+                                        <i class="fas fa-tint"></i> <span class="detail-label">90%</span>
+                                    </span>
+                                    <span class="detail-item">
+                                        <i class="fas fa-wind"></i> <span class="detail-label">8 m/s</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="scroll-arrow">
+                        <a href="#world-forecast"><i class="fas fa-arrow-down"></i></a> 
+                    </div>
+                </div>
+
+                <div class="hero__right">
+                    <div class="sidebar-forecast">
+                        <h2>World Forecast</h2>
+                        <ul class="forecast-list forecast-list--mini">
+                            <li>AUSTRALIA <i class="fas fa-chevron-right arrow"></i></li>
+                            <li>INDONESIA <i class="fas fa-chevron-right arrow"></i></li>
+                            <li>UNITED KINGDOM <i class="fas fa-chevron-right arrow"></i></li>
+                        </ul>
+
+                        <h2>Weather Map</h2>
+                        <div class="weather-map-placeholder">
+                            <p>Map visualization area</p>
+                            <button class="btn btn--link">Explore All Location</button>
+                        </div>
+
+                        <h2>News</h2>
+                        <div class="news-list">
+                            <article class="news-item">
+                                <a href="#" class="news-link">Gelombang panas ekstrem melanda Asia Tenggara, rekor suhu pecah.</a>
+                                <p class="news-meta">5 hours ago</p>
+                            </article>
+                            <article class="news-item">
+                                <a href="#" class="news-link">Peringatan badai tropis dikeluarkan untuk wilayah Atlantik Utara.</a>
+                                <p class="news-meta">1 day ago</p>
+                            </article>
+                            <article class="news-item">
+                                <a href="#" class="news-link">Petani di Eropa menghadapi kekeringan terburuk dalam 50 tahun.</a>
+                                <p class="news-meta">2 days ago</p>
+                            </article>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="world-forecast" class="section section--world-forecast">
+            <div class="container">
+                <h2>World Forecast</h2>
+                <ul class="forecast-list forecast-list--large">
+                    <li class="forecast-item">
+                        <span class="country-code">AUS</span> <span class="country-name">AUSTRALIA</span> <i class="fas fa-chevron-right arrow"></i>
+                    </li>
+                    <li class="forecast-item">
+                        <span class="country-code">IDN</span> <span class="country-name">INDONESIA</span> <i class="fas fa-chevron-right arrow"></i>
+                    </li>
+                    <li class="forecast-item">
+                        <span class="country-code">SWE</span> <span class="country-name">SWEDEN</span> <i class="fas fa-chevron-right arrow"></i>
+                    </li>
+                    <li class="forecast-item">
+                        <span class="country-code">JPN</span> <span class="country-name">JAPAN</span> <i class="fas fa-chevron-right arrow"></i>
+                    </li>
+                    <li class="forecast-item">
+                        <span class="country-code">NLD</span> <span class="country-name">NETHERLANDS</span> <i class="fas fa-chevron-right arrow"></i>
+                    </li>
+                    <li class="forecast-item">
+                        <span class="country-code">CAN</span> <span class="country-name">CANADA</span> <i class="fas fa-chevron-right arrow"></i>
+                    </li>
+                    <li class="forecast-item">
+                        <span class="country-code">GBR</span> <span class="country-name">UNITED KINGDOM</span> <i class="fas fa-chevron-right arrow"></i>
+                    </li>
+                    <li class="forecast-item">
+                        <span class="country-code">USA</span> <span class="country-name">UNITED STATES</span> <i class="fas fa-chevron-right arrow"></i>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer__grid">
+            <div class="footer__col">
+                <div class="logo">Cuacane</div>
+                <p>Prakiraan cuaca paling akurat di seluruh dunia, didukung oleh data real-time.</p>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="footer__col">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="climate.html">Climate Analysis</a></li>
+                    <li><a href="service.html">API & Services</a></li>
+                    <li><a href="research.html">Our Research</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                </ul>
+            </div>
+            <div class="footer__col">
+                <h3>Contact</h3>
+                <p><i class="fas fa-envelope"></i> info@cuacane.com</p>
+                <p><i class="fas fa-phone"></i> +62 21 555 1234</p>
+                <p><i class="fas fa-map-marker-alt"></i> Jakarta, Indonesia</p>
+            </div>
+        </div>
+        <div class="footer__bottom">
+            <p>&copy; 2025 Cuacane. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
