@@ -138,6 +138,52 @@ async function fetchWeather(params, targetContainer = document.getElementById('w
 
 
 // =================================================================================
+// LOGIC KHUSUS PETA HOME PAGE (home.html)
+// =================================================================================
+
+function initHomeMap() {
+    const mapElement = document.getElementById('home-weather-map');
+    
+    if (!mapElement || typeof L === 'undefined') {
+        return;
+    }
+    
+    // Inisialisasi peta di lokasi tengah yang relevan (misalnya, Asia Tenggara)
+    const map = L.map('home-weather-map').setView([0, 100], 3);
+    
+    // Lapisan Peta Dasar (CARTO Light)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        maxZoom: 18,
+        minZoom: 2,
+    }).addTo(map);
+    
+    // Tambahkan Lapisan Curah Hujan OWM jika API Key valid
+    if (OWM_API_KEY && OWM_API_KEY !== 'YOUR_OWM_API_KEY') {
+        const precipitationLayer = L.tileLayer('https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=' + OWM_API_KEY, {
+            maxZoom: 18,
+            opacity: 0.6, // Transparansi untuk melihat peta dasar
+            attribution: 'Curah Hujan &copy; <a href="https://openweathermap.org">OWM</a>'
+        }).addTo(map);
+        
+        // Buat kontrol layer sederhana
+        L.control.layers(null, { "Curah Hujan": precipitationLayer }, { collapsed: true }).addTo(map);
+        
+    } else {
+        // Fallback untuk menunjukkan API Key hilang
+        L.marker([0, 100]).addTo(map)
+             .bindPopup('<b>Peringatan</b><br>API Key OWM diperlukan untuk lapisan cuaca real-time.').openPopup();
+    }
+    
+    // PERBAIKAN: Memanggil invalidateSize untuk memastikan Leaflet menghitung ulang ukuran
+    // Ini sering memperbaiki masalah peta yang tidak terlihat di sidebar/container non-standar.
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 100); 
+}
+
+
+// =================================================================================
 // LOGIC KHUSUS PETA DUNIA (world_forecast.html)
 // =================================================================================
 
@@ -519,6 +565,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => { if (document.contains(errorText)) errorText.remove(); }, 5000);
             }
         });
+    }
+
+    // Inisialisasi peta sidebar di Home Page
+    const homeMapElement = document.getElementById('home-weather-map');
+    if (homeMapElement) {
+        initHomeMap();
     }
     
     // --- Logika World Forecast Page ---
