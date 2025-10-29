@@ -318,6 +318,56 @@ app.get('/api/route-weather', async (req, res) => {
     }
 });
 
+// --- FIX: Menggunakan Mock Data untuk Berita Cuaca ---
+app.get('/api/weather-news', async (req, res) => {
+    try {
+        // Data Mock/Placeholder: Simulasi berita cuaca terbaru
+        const mockNews = [
+            {
+                title: "Peringatan Dini Banjir Bandang di Jawa Barat setelah Hujan Ekstrem",
+                link: "https://mocklink.com/banjir-jabar",
+                source: "BMKG News",
+                date: new Date(Date.now() - 3600000).toISOString() // 1 jam lalu
+            },
+            {
+                title: "Badai Tropis Baru terbentuk di Pasifik, diperkirakan menuju Filipina",
+                link: "https://mocklink.com/badai-pasifik",
+                source: "Global Weather Hub",
+                date: new Date(Date.now() - 3600000 * 5).toISOString() // 5 jam lalu
+            },
+            {
+                title: "Musim Kemarau Panjang: Petani di Kalimantan Diimbau Waspada Kekeringan",
+                link: "https://mocklink.com/kekeringan-kalimantan",
+                source: "Kementerian Pertanian",
+                date: new Date(Date.now() - 3600000 * 12).toISOString() // 12 jam lalu
+            },
+            {
+                title: "Fenomena La Niña diprediksi kembali, membawa dampak hujan lebat akhir tahun.",
+                link: "https://mocklink.com/lanina-prediksi",
+                source: "Climate Watch",
+                date: new Date(Date.now() - 3600000 * 24).toISOString() // 1 hari lalu
+            },
+            {
+                title: "Suhu Global pecahkan rekor, bulan ini menjadi yang terpanas dalam sejarah.",
+                link: "https://mocklink.com/suhu-rekor",
+                source: "International Climate Agency",
+                date: new Date(Date.now() - 3600000 * 30).toISOString() // Lebih dari 1 hari lalu
+            }
+        ];
+
+        // Delay untuk simulasi loading jaringan
+        await new Promise(resolve => setTimeout(resolve, 500)); 
+
+        // Balas dengan data mock (Status 200 OK)
+        res.json({ news: mockNews });
+
+    } catch (error) {
+        console.error("Error fetching weather news:", error.message);
+        // Jika ada error internal saat menyiapkan mock data, kirim 500
+        res.status(500).json({ error: 'Internal Server Error: Could not generate mock news data.' });
+    }
+});
+
 
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);

@@ -136,6 +136,216 @@ async function fetchWeather(params, targetContainer = document.getElementById('w
     }
 }
 
+/**
+ * Merender daftar berita baru.
+ */
+function renderNews(newsData) {
+    const newsContainer = document.querySelector('.news-list');
+    if (!newsContainer) return;
+
+    // Hapus placeholder berita lama (yang ada di home.html)
+    newsContainer.innerHTML = ''; 
+
+    if (newsData.length === 0) {
+        newsContainer.innerHTML = '<p class="news-meta">Tidak ada berita cuaca terbaru yang ditemukan.</p>';
+        return;
+    }
+
+    // Hanya tampilkan 5 berita teratas untuk sidebar
+    const limitedNews = newsData.slice(0, 5); 
+
+    limitedNews.forEach(item => {
+        const date = new Date(item.date);
+        // Menggunakan date-fns/moment lebih baik, tapi untuk sederhana pakai helper timeSince
+        const timeAgo = isNaN(date.getTime()) ? 'Beberapa waktu lalu' : timeSince(date); 
+        const sourceName = item.source || 'Cuacane';
+
+        const article = document.createElement('article');
+        article.className = 'news-item';
+        article.innerHTML = `
+            <a href="${item.link}" target="_blank" class="news-link">${item.title}</a>
+            <p class="news-meta">${timeAgo} - ${sourceName}</p>
+        `;
+        newsContainer.appendChild(article);
+    });
+}
+
+/**
+ * Helper function untuk menghitung waktu sejak (time ago)
+ */
+function timeSince(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    let interval = seconds / 31536000;
+
+    if (interval > 1) return Math.floor(interval) + " tahun lalu";
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + " bulan lalu";
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + " hari lalu";
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + " jam lalu";
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + " menit lalu";
+    return "Baru saja";
+}
+
+/**
+ * Mengambil berita cuaca dari backend.
+ */
+async function fetchWeatherNews() {
+    const newsContainer = document.querySelector('.news-list');
+    if (!newsContainer) return;
+    
+    // Tampilkan pesan loading
+    newsContainer.innerHTML = `<article class="news-item"><i class="fas fa-spinner fa-spin"></i> Memuat berita terbaru...</article>`;
+
+    try {
+        const response = await fetch(`http://localhost:3000/api/weather-news`);
+        const data = await response.json();
+
+        if (response.status !== 200) {
+            newsContainer.innerHTML = `<article class="news-item"><p class="news-meta" style="color: red;">Error: Gagal memuat berita.</p></article>`;
+            return;
+        }
+
+        renderNews(data.news);
+
+    } catch (error) {
+        console.error('Fetch news error:', error);
+        newsContainer.innerHTML = `<article class="news-item"><p class="news-meta" style="color: red;">Kesalahan Jaringan: Gagal koneksi ke server berita.</p></article>`;
+    }
+}
+
+
+// =================================================================================
+// LOGIC KHUSUS CLIMATE PAGE (climate.html)
+// =================================================================================
+
+/**
+ * Merender grafik data historis menggunakan Chart.js.
+ */
+function renderHistoricalChart(data) {
+    const ctx = document.getElementById('historical-chart');
+    // Pastikan Chart.js sudah dimuat dan elemen canvas ada
+    if (!ctx || typeof Chart === 'undefined') return;
+    
+    // Hapus elemen loading/placeholder
+    ctx.parentElement.innerHTML = '<canvas id="historical-chart" style="width: 100%; height: 100%;"></canvas>';
+    const finalCtx = document.getElementById('historical-chart').getContext('2d');
+    
+    // Ambil hanya bulan dan tanggal untuk label
+    const labels = data.time.map(t => {
+        const date = new Date(t);
+        // Format menjadi 'Jan 2024'
+        return date.toLocaleString('id-ID', { month: 'short', year: 'numeric' });
+    }).filter((value, index, self) => self.indexOf(value) === index); // Ambil hanya label unik bulanan
+    
+    // Rata-rata suhu harian menjadi suhu bulanan (penyederhanaan)
+    // Dalam implementasi nyata, kita perlu memproses data bulanan di backend.
+    // Untuk tujuan simulasi, kita akan mengambil satu titik data per bulan.
+    const monthlyMaxTemps = [];
+    const monthlyDataMap = {}; // Map untuk mengelompokkan data berdasarkan bulan-tahun
+
+    data.time.forEach((timeStr, index) => {
+        const monthYear = new Date(timeStr).toLocaleString('id-ID', { month: 'short', year: 'numeric' });
+        const temp = data.temperature_2m_max[index];
+        
+        if (!monthlyDataMap[monthYear]) {
+            monthlyDataMap[monthYear] = [];
+        }
+        monthlyDataMap[monthYear].push(temp);
+    });
+
+    for (const monthYear of labels) {
+        const sum = monthlyDataMap[monthYear].reduce((a, b) => a + b, 0);
+        const avg = sum / monthlyDataMap[monthYear].length;
+        monthlyMaxTemps.push(parseFloat(avg.toFixed(1)));
+    }
+
+
+    new Chart(finalCtx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Suhu Maks. Bulanan Rata-Rata (°C)',
+                data: monthlyMaxTemps,
+                borderColor: 'rgb(30, 144, 255)', // var(--color-primary)
+                backgroundColor: 'rgba(30, 144, 255, 0.1)',
+                borderWidth: 2,
+                pointRadius: 4,
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    title: {
+                        display: true,
+                        text: 'Suhu (°C)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Bulan'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Tren Suhu Maksimum Harian Tahunan (Jakarta)'
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Mengambil data historis dari Open-Meteo.
+ */
+async function fetchHistoricalData() {
+    const chartContainer = document.querySelector('.section--historical .placeholder-graphic');
+    if (!chartContainer) return;
+    
+    const loadingMessage = '<i class="fas fa-spinner fa-spin fa-3x mb-3"></i><p>Memuat data iklim historis...</p>';
+    chartContainer.innerHTML = loadingMessage;
+    
+    // Lokasi Jakarta
+    const LAT = -6.2088; 
+    const LON = 106.8456; 
+    // Data satu tahun penuh (Jan 2024 - Des 2024)
+    const START_DATE = '2024-01-01';
+    const END_DATE = '2024-12-31';
+
+    try {
+        const response = await fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${LAT}&longitude=${LON}&start_date=${START_DATE}&end_date=${END_DATE}&daily=temperature_2m_max&timezone=auto`);
+        
+        const data = await response.json();
+
+        if (response.status !== 200 || !data.daily) {
+            chartContainer.innerHTML = '<i class="fas fa-exclamation-triangle fa-3x mb-3"></i><p>Gagal memuat data historis. API Error.</p>';
+            return;
+        }
+        
+        // Render chart dengan data yang diambil
+        renderHistoricalChart(data.daily);
+
+    } catch (error) {
+        console.error('Fetch historical data error:', error);
+        chartContainer.innerHTML = '<i class="fas fa-exclamation-triangle fa-3x mb-3"></i><p>Kesalahan Jaringan. Gagal koneksi ke API Open-Meteo.</p>';
+    }
+}
+
 
 // =================================================================================
 // LOGIC KHUSUS PETA HOME PAGE (home.html)
@@ -497,12 +707,116 @@ function initTravelMap() {
 
 
 // =================================================================================
+// LOGIC KHUSUS PETA HOME PAGE (home.html)
+// =================================================================================
+
+function initHomeMap() {
+    const mapElement = document.getElementById('home-weather-map');
+    
+    if (!mapElement || typeof L === 'undefined') {
+        return;
+    }
+    
+    // Inisialisasi peta di lokasi tengah yang relevan (misalnya, Asia Tenggara)
+    const map = L.map('home-weather-map').setView([0, 100], 3);
+    
+    // Lapisan Peta Dasar (CARTO Light)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        maxZoom: 18,
+        minZoom: 2,
+    }).addTo(map);
+    
+    // Tambahkan Lapisan Curah Hujan OWM jika API Key valid
+    if (OWM_API_KEY && OWM_API_KEY !== 'YOUR_OWM_API_KEY') {
+        const precipitationLayer = L.tileLayer('https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=' + OWM_API_KEY, {
+            maxZoom: 18,
+            opacity: 0.6, // Transparansi untuk melihat peta dasar
+            attribution: 'Curah Hujan &copy; <a href="https://openweathermap.org">OWM</a>'
+        }).addTo(map);
+        
+        // Buat kontrol layer sederhana
+        L.control.layers(null, { "Curah Hujan": precipitationLayer }, { collapsed: true }).addTo(map);
+        
+    } else {
+        // Fallback untuk menunjukkan API Key hilang
+        L.marker([0, 100]).addTo(map)
+             .bindPopup('<b>Peringatan</b><br>API Key OWM diperlukan untuk lapisan cuaca real-time.').openPopup();
+    }
+    
+    // PERBAIKAN: Memanggil invalidateSize untuk memastikan Leaflet menghitung ulang ukuran
+    // Ini sering memperbaiki masalah peta yang tidak terlihat di sidebar/container non-standar.
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 100); 
+}
+
+
+// =================================================================================
+// LOGIC KHUSUS PETA DUNIA (world_forecast.html)
+// =================================================================================
+
+function initWorldMap() {
+    const mapElement = document.getElementById('temperature-map');
+    
+    if (!mapElement || typeof L === 'undefined') {
+        return;
+    }
+    
+    const map = L.map('temperature-map').setView([20, 0], 2);
+    
+    const baseLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        maxZoom: 18,
+        minZoom: 2,
+    }).addTo(map);
+    
+    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+
+    let tempOverlayLayer;
+    let baseLayers = { "CARTO Light": baseLayer, "OSM Standard": osmLayer };
+    let overlayLayers = {};
+    const warningText = document.querySelector('.weather-map-container p.mt-2');
+    
+    if (OWM_API_KEY && OWM_API_KEY !== 'YOUR_OWM_API_KEY') {
+        tempOverlayLayer = L.tileLayer('https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=' + OWM_API_KEY, {
+            maxZoom: 18,
+            opacity: 0.7, 
+            attribution: 'Suhu &copy; <a href="https://openweathermap.org">OWM</a>'
+        });
+        overlayLayers["Suhu Global"] = tempOverlayLayer;
+        
+    } else {
+        const fallbackMarkers = [
+            [35.6895, 139.6917, "Tokyo"], [51.5074, -0.1278, "London"],
+            [28.6139, 77.2090, "New Delhi"], [-6.2088, 106.8456, "Jakarta"]
+        ];
+
+        fallbackMarkers.forEach(coord => {
+            L.marker([coord[0], coord[1]]).addTo(map)
+             .bindPopup(`<b>${coord[2]}</b><br>API Key Diperlukan untuk Lapisan Suhu`);
+        });
+        
+        if (warningText) {
+             warningText.style.display = 'block';
+             warningText.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Data suhu tidak dapat dimuat. Mohon masukkan API Key OWM yang valid.';
+        }
+    }
+
+    L.control.layers(baseLayers, overlayLayers, { collapsed: false }).addTo(map);
+    L.control.scale({ imperial: false }).addTo(map); 
+}
+
+
+// =================================================================================
 // EVENT LISTENERS UTAMA (DOM Load)
 // =================================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // --- Logika Home Page ---
+    // --- Logika Home Page: Pencarian ---
     const searchForm = document.getElementById('search-form');
     if (searchForm) {
         const searchInput = document.getElementById('search-input');
@@ -573,6 +887,20 @@ document.addEventListener('DOMContentLoaded', () => {
         initHomeMap();
     }
     
+    // --- Logika News Fetch (Home Page) ---
+    // Panggil fungsi pengambilan berita saat DOM dimuat
+    if (document.querySelector('.news-list')) {
+        fetchWeatherNews();
+    }
+    
+    // --- Logika Climate Page ---
+    // Cek apakah elemen untuk chart ada di halaman ini
+    const historicalChartElement = document.getElementById('historical-chart');
+    if (historicalChartElement) {
+        fetchHistoricalData();
+    }
+
+
     // --- Logika World Forecast Page ---
     const worldContainer = document.getElementById('world-weather-result');
     if (worldContainer) {

@@ -476,6 +476,7 @@ h1, h2, h3 {
 #map-route {
     height: 550px;
     width: 100%;
+    z-index: 2;
 }
 
 /* GAYA INPUT KONSISTEN (route-input) - Sudah ada di file ini, tapi kita pastikan ulang */
