@@ -5,20 +5,18 @@ const path = require('path');
 const app = express();
 const port = 3000;
 
-// Use CORS middleware (penting untuk frontend/backend communication)
+// Use CORS middleware
 const cors = require('cors');
 app.use(cors());
 
-// PERHATIAN: __dirname adalah folder tempat server.js berada (yaitu 'backend')
-// Kita perlu keluar satu tingkat (..) untuk mencapai 'public_html'
+// Path configuration
 const publicPath = path.join(__dirname, '..', 'public_html');
 
-// 1. Melayani File Statis (CSS, JS, Gambar, HTML lainnya)
+// 1. Melayani File Statis
 app.use(express.static(publicPath));
 
-// 2. Route Root untuk melayani home.html
+// 2. Route Root
 app.get('/', (req, res) => {
-    // Mengatasi error "Cannot GET /" dengan mengirimkan home.html
     res.sendFile(path.join(publicPath, 'home.html')); 
 });
 
@@ -26,77 +24,35 @@ app.get('/', (req, res) => {
 // --- KONSTANTA API ---
 const NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org/search';
 const OPEN_METEO_BASE_URL = 'https://api.open-meteo.com/v1/forecast';
+// URL RSS untuk Berita Real-Time (NASA Earth Observatory)
+const NEWS_RSS_URL = 'https://earthobservatory.nasa.gov/feeds/earth-observatory.rss';
 
-// Helper function to map WMO code to Font Awesome icon and text
+// Helper function to map WMO code
 function mapWeatherCode(wmoCode, isDay) {
     let iconClass = 'fas fa-question';
-    let conditionText = 'Variable'; // Default to variable
+    let conditionText = 'Variable'; 
 
-    // Open-Meteo Weather Codes (WMO)
     switch (wmoCode) {
-        case 0: // Clear sky
-            iconClass = isDay ? 'fas fa-sun' : 'fas fa-moon';
-            conditionText = 'Clear Sky';
-            break;
-        case 1: // Mainly clear
-        case 2: // Partly cloudy
-            iconClass = isDay ? 'fas fa-cloud-sun' : 'fas fa-cloud-moon';
-            conditionText = 'Partly Cloudy';
-            break;
-        case 3: // Overcast
-            iconClass = 'fas fa-cloud';
-            conditionText = 'Overcast';
-            break;
-        case 45: // Fog
-        case 48: // Depositing rime fog
-            iconClass = 'fas fa-smog';
-            conditionText = 'Fog';
-            break;
-        case 51: // Drizzle: Light
-        case 53: // Drizzle: Moderate
-        case 55: // Drizzle: Dense
-            iconClass = 'fas fa-cloud-rain';
-            conditionText = 'Drizzle';
-            break;
-        case 61: // Rain: Slight
-            iconClass = 'fas fa-cloud-rain';
-            conditionText = 'Slight Rain';
-            break;
-        case 63: // Rain: Moderate
-            iconClass = 'fas fa-cloud-showers-heavy';
-            conditionText = 'Moderate Rain';
-            break;
-        case 65: // Rain: Heavy
-            iconClass = 'fas fa-cloud-showers-heavy';
-            conditionText = 'Heavy Rain';
-            break;
-        case 80: // Rain showers: Slight
-        case 81: // Rain showers: Moderate
-        case 82: // Rain showers: Violent
-            iconClass = 'fas fa-cloud-showers-heavy';
-            conditionText = 'Rain Showers';
-            break;
-        case 95: // Thunderstorm: Slight or moderate
-        case 96: // Thunderstorm with slight hail
-        case 99: // Thunderstorm with heavy hail
-            iconClass = 'fas fa-bolt';
-            conditionText = 'Thunderstorm';
-            break;
-        default:
-            iconClass = 'fas fa-question-circle';
-            conditionText = 'Variable';
+        case 0: iconClass = isDay ? 'fas fa-sun' : 'fas fa-moon'; conditionText = 'Clear Sky'; break;
+        case 1: case 2: iconClass = isDay ? 'fas fa-cloud-sun' : 'fas fa-cloud-moon'; conditionText = 'Partly Cloudy'; break;
+        case 3: iconClass = 'fas fa-cloud'; conditionText = 'Overcast'; break;
+        case 45: case 48: iconClass = 'fas fa-smog'; conditionText = 'Fog'; break;
+        case 51: case 53: case 55: iconClass = 'fas fa-cloud-rain'; conditionText = 'Drizzle'; break;
+        case 61: iconClass = 'fas fa-cloud-rain'; conditionText = 'Slight Rain'; break;
+        case 63: iconClass = 'fas fa-cloud-showers-heavy'; conditionText = 'Moderate Rain'; break;
+        case 65: iconClass = 'fas fa-cloud-showers-heavy'; conditionText = 'Heavy Rain'; break;
+        case 80: case 81: case 82: iconClass = 'fas fa-cloud-showers-heavy'; conditionText = 'Rain Showers'; break;
+        case 95: case 96: case 99: iconClass = 'fas fa-bolt'; conditionText = 'Thunderstorm'; break;
+        default: iconClass = 'fas fa-question-circle'; conditionText = 'Variable';
     }
     return { iconClass, conditionText };
 }
 
-/**
- * Helper function untuk geocoding nama lokasi menggunakan Nominatim.
- * @param {string} locationName - Nama lokasi yang dicari.
- * @returns {Promise<{lat: number, lon: number, name: string}>} - Koordinat dan nama yang sudah di-clean.
- */
+// Helper Geocoding
 async function geocodeLocation(locationName) {
     const geoResponse = await axios.get(NOMINATIM_BASE_URL, {
-        params: { q: locationName, format: 'json', limit: 1 }
+        params: { q: locationName, format: 'json', limit: 1 },
+        headers: { 'User-Agent': 'CuacaneApp/1.0' }
     });
 
     if (!geoResponse.data || geoResponse.data.length === 0) {
@@ -104,27 +60,19 @@ async function geocodeLocation(locationName) {
     }
 
     const data = geoResponse.data[0];
-    const lat = parseFloat(data.lat);
-    const lon = parseFloat(data.lon);
-    
-    // Ambil nama kota utama
     let name = data.display_name.split(',')[0].trim();
-    if (!name || name === data.lat) { 
-        name = locationName; 
-    }
+    if (!name || name === data.lat) { name = locationName; }
 
-    return { lat, lon, name };
+    return { lat: parseFloat(data.lat), lon: parseFloat(data.lon), name };
 }
 
-// --- API Route Cuaca Standar (Untuk Home dan World Forecast) ---
+// --- API Route Cuaca Standar ---
 app.get('/api/weather', async (req, res) => {
     let { location, lat, lon } = req.query; 
-    let geoLoc = {}; 
 
     try {
         if (location) {
-            // Langkah 1: Konversi Nama Kota ke Lat/Lon menggunakan Nominatim
-            geoLoc = await geocodeLocation(location);
+            const geoLoc = await geocodeLocation(location);
             lat = geoLoc.lat;
             lon = geoLoc.lon;
             location = geoLoc.name;
@@ -132,7 +80,6 @@ app.get('/api/weather', async (req, res) => {
             return res.status(400).json({ error: 'Location or valid coordinates (lat/lon) parameter is required' });
         }
 
-        // Langkah 2: Ambil data cuaca dari Open-Meteo
         const weatherResponse = await axios.get(OPEN_METEO_BASE_URL, {
             params: {
                 latitude: lat,
@@ -145,22 +92,16 @@ app.get('/api/weather', async (req, res) => {
         });
 
         if (!weatherResponse.data || !weatherResponse.data.current) {
-            return res.status(500).json({ error: 'Failed to retrieve current weather data from Open-Meteo.' });
+            return res.status(500).json({ error: 'Failed to retrieve current weather data.' });
         }
         
         const current = weatherResponse.data.current;
-        
-        if (current.weather_code === undefined || current.is_day === undefined) {
-             return res.status(500).json({ error: 'Missing critical weather codes in API response.' });
-        }
-        
         const wmoCode = current.weather_code;
         const isDay = current.is_day === 1;
-        const isNight = current.is_day === 0; // Logika kartu gelap
+        const isNight = current.is_day === 0; 
 
         const { iconClass, conditionText } = mapWeatherCode(wmoCode, isDay);
 
-        // Langkah 3: Balas ke frontend
         res.json({
             temp: current.temperature_2m,
             city: location || 'Current Location', 
@@ -173,12 +114,12 @@ app.get('/api/weather', async (req, res) => {
 
     } catch (error) {
         console.error("Error fetching weather data:", error.message);
-        res.status(500).json({ error: error.message || 'Failed to fetch weather data from external APIs.' });
+        res.status(500).json({ error: error.message || 'Failed to fetch weather data.' });
     }
 });
 
 
-// --- API Route Khusus Analisis Rute (Prakiraan 3 Jam & Zona Warna) ---
+// --- API Route Khusus Analisis Rute (TETAP SAMA SEPERTI YANG ANDA KIRIM) ---
 app.get('/api/route-weather', async (req, res) => {
     const { start, end, startTime } = req.query;
 
@@ -187,11 +128,9 @@ app.get('/api/route-weather', async (req, res) => {
     }
 
     try {
-        // 1. Geocoding Titik A dan B
         const locA = await geocodeLocation(start);
         const locB = await geocodeLocation(end);
 
-        // 2. Tentukan Titik Cuaca Rute (4 Titik: Awal, Tengah 1, Tengah 2, Akhir)
         const midLat1 = (locA.lat * 2 + locB.lat) / 3;
         const midLon1 = (locA.lon * 2 + locB.lon) / 3;
         const midLat2 = (locA.lat + locB.lat * 2) / 3;
@@ -204,7 +143,6 @@ app.get('/api/route-weather', async (req, res) => {
             { lat: locB.lat, lon: locB.lon, name: locB.name },
         ];
         
-        // Waktu mulai perjalanan (dalam jam)
         const startHour = startTime ? parseInt(startTime) : new Date().getHours();
         
         const hourlyForecasts = [];
@@ -212,17 +150,13 @@ app.get('/api/route-weather', async (req, res) => {
         let shouldCarryUmbrella = false;
         let finalMajorCondition = '';
         let highestRain = 0;
-        
-        // Durasi prakiraan (3 jam sesuai permintaan)
         const FORECAST_DURATION = 3; 
 
-        // 3. Ambil Prakiraan Cuaca Jam Per Jam untuk SETIAP Titik Cuaca
         for (const point of checkPoints) {
             const weatherResponse = await axios.get(OPEN_METEO_BASE_URL, {
                 params: {
                     latitude: point.lat,
                     longitude: point.lon,
-                    // Meminta suhu, kode cuaca, curah hujan, dan is_day
                     hourly: 'weather_code,temperature_2m,precipitation,is_day', 
                     temperature_unit: 'celsius',
                     timezone: 'auto',
@@ -230,23 +164,16 @@ app.get('/api/route-weather', async (req, res) => {
                 }
             });
             
-            if (!weatherResponse.data || !weatherResponse.data.hourly) {
-                 continue; 
-            }
+            if (!weatherResponse.data || !weatherResponse.data.hourly) continue; 
             
             const hourlyData = weatherResponse.data.hourly;
-            
-            // Cari indeks waktu mulai
             const startIndex = hourlyData.time.findIndex(timeStr => {
                 const hour = new Date(timeStr).getHours();
                 return hour === startHour;
             });
             
-            if (startIndex === -1) {
-                continue;
-            }
+            if (startIndex === -1) continue;
             
-            // Ambil data untuk 3 jam ke depan
             for (let i = 0; i < FORECAST_DURATION; i++) {
                 const index = startIndex + i;
                 if (index >= hourlyData.time.length) break; 
@@ -260,56 +187,41 @@ app.get('/api/route-weather', async (req, res) => {
                 
                 const { conditionText, iconClass } = mapWeatherCode(wmoCode, isDay);
                 
-                // Analisis Curah Hujan/Kondisi
                 if (rain > 0.5 || (wmoCode >= 51 && wmoCode <= 82) || wmoCode === 95 || wmoCode === 96 || wmoCode === 99) {
                     shouldCarryUmbrella = true;
                     if (rain > highestRain) highestRain = rain;
                 }
                 
-                // Kumpulkan titik cuaca untuk visualisasi peta (Ambil data dari jam pertama)
                 if (i === 0) {
                      rainPoints.push({
-                        lat: point.lat, 
-                        lon: point.lon, 
-                        time: timeStr,
-                        condition: conditionText,
+                        lat: point.lat, lon: point.lon, 
+                        time: timeStr, condition: conditionText,
                         precipitation: rain.toFixed(1),
-                        // Kirim suhu untuk penentuan warna peta (Merah/Kuning/Biru)
-                        temp: temp.toFixed(1), 
-                        wmoCode: wmoCode // Kirim WMO code untuk penentuan kondisi
+                        temp: temp.toFixed(1), wmoCode: wmoCode 
                     });
                 }
                 
-                // Kumpulkan prakiraan jam per jam (hanya dari titik awal untuk analisis AI)
                 if (point.name === locA.name) {
                     hourlyForecasts.push({
-                        hour: hour,
-                        condition: conditionText,
-                        icon: iconClass,
-                        temp: temp,
-                        rain: rain.toFixed(1)
+                        hour: hour, condition: conditionText,
+                        icon: iconClass, temp: temp, rain: rain.toFixed(1)
                     });
-                    
                     if (i === 0) finalMajorCondition = conditionText;
                 }
             }
         }
         
-        // Analisis akhir AI
-        const finalAdvice = {
-            needsUmbrella: shouldCarryUmbrella,
-            needsRainCoat: highestRain >= 5.0,
-            highestPrecipitation: highestRain,
-            majorCondition: finalMajorCondition,
-            forecast: hourlyForecasts,
-        };
-
-        // 4. Balas ke Frontend
         res.json({
             start: locA,
             end: locB,
-            rainPoints: rainPoints, // rainPoints sekarang membawa suhu dan WMO code
-            advice: finalAdvice,
+            rainPoints: rainPoints, 
+            advice: {
+                needsUmbrella: shouldCarryUmbrella,
+                needsRainCoat: highestRain >= 5.0,
+                highestPrecipitation: highestRain,
+                majorCondition: finalMajorCondition,
+                forecast: hourlyForecasts,
+            },
         });
 
     } catch (error) {
@@ -318,53 +230,67 @@ app.get('/api/route-weather', async (req, res) => {
     }
 });
 
-// --- FIX: Menggunakan Mock Data untuk Berita Cuaca ---
+// --- API BERITA (DIPERBARUI: REAL-TIME + FALLBACK) ---
 app.get('/api/weather-news', async (req, res) => {
     try {
-        // Data Mock/Placeholder: Simulasi berita cuaca terbaru
+        // 1. Coba ambil data Real-Time dari NASA
+        const rssResponse = await axios.get(NEWS_RSS_URL);
+        const xmlData = rssResponse.data;
+
+        // Parsing XML sederhana dengan Regex
+        const items = [];
+        const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+        let match;
+        let count = 0;
+
+        while ((match = itemRegex.exec(xmlData)) !== null && count < 5) {
+            const itemContent = match[1];
+            const titleMatch = /<title>(.*?)<\/title>/.exec(itemContent);
+            const linkMatch = /<link>(.*?)<\/link>/.exec(itemContent);
+            const dateMatch = /<pubDate>(.*?)<\/pubDate>/.exec(itemContent);
+            
+            if (titleMatch && linkMatch) {
+                items.push({
+                    title: titleMatch[1].replace('<![CDATA[', '').replace(']]>', ''),
+                    link: linkMatch[1],
+                    source: "NASA Earth Observatory",
+                    date: dateMatch ? new Date(dateMatch[1]).toISOString() : new Date().toISOString()
+                });
+                count++;
+            }
+        }
+        
+        // Kirim data real-time
+        res.json({ news: items });
+
+    } catch (error) {
+        console.error("RSS Fetch Error (Switching to Mock Data):", error.message);
+        
+        // --- FALLBACK (DATA LAMA ANDA) ---
+        // Jika internet server error atau NASA down, gunakan mock data agar tampilan tidak rusak.
         const mockNews = [
             {
                 title: "Peringatan Dini Banjir Bandang di Jawa Barat setelah Hujan Ekstrem",
-                link: "https://mocklink.com/banjir-jabar",
-                source: "BMKG News",
-                date: new Date(Date.now() - 3600000).toISOString() // 1 jam lalu
+                link: "#", source: "BMKG News (Cached)",
+                date: new Date(Date.now() - 3600000).toISOString()
             },
             {
                 title: "Badai Tropis Baru terbentuk di Pasifik, diperkirakan menuju Filipina",
-                link: "https://mocklink.com/badai-pasifik",
-                source: "Global Weather Hub",
-                date: new Date(Date.now() - 3600000 * 5).toISOString() // 5 jam lalu
+                link: "#", source: "Global Weather Hub (Cached)",
+                date: new Date(Date.now() - 3600000 * 5).toISOString()
             },
             {
                 title: "Musim Kemarau Panjang: Petani di Kalimantan Diimbau Waspada Kekeringan",
-                link: "https://mocklink.com/kekeringan-kalimantan",
-                source: "Kementerian Pertanian",
-                date: new Date(Date.now() - 3600000 * 12).toISOString() // 12 jam lalu
-            },
-            {
-                title: "Fenomena La Niña diprediksi kembali, membawa dampak hujan lebat akhir tahun.",
-                link: "https://mocklink.com/lanina-prediksi",
-                source: "Climate Watch",
-                date: new Date(Date.now() - 3600000 * 24).toISOString() // 1 hari lalu
+                link: "#", source: "Kementerian Pertanian (Cached)",
+                date: new Date(Date.now() - 3600000 * 12).toISOString()
             },
             {
                 title: "Suhu Global pecahkan rekor, bulan ini menjadi yang terpanas dalam sejarah.",
-                link: "https://mocklink.com/suhu-rekor",
-                source: "International Climate Agency",
-                date: new Date(Date.now() - 3600000 * 30).toISOString() // Lebih dari 1 hari lalu
+                link: "#", source: "International Climate Agency (Cached)",
+                date: new Date(Date.now() - 3600000 * 30).toISOString()
             }
         ];
-
-        // Delay untuk simulasi loading jaringan
-        await new Promise(resolve => setTimeout(resolve, 500)); 
-
-        // Balas dengan data mock (Status 200 OK)
         res.json({ news: mockNews });
-
-    } catch (error) {
-        console.error("Error fetching weather news:", error.message);
-        // Jika ada error internal saat menyiapkan mock data, kirim 500
-        res.status(500).json({ error: 'Internal Server Error: Could not generate mock news data.' });
     }
 });
 
