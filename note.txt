@@ -1,3 +1,3 @@
 OpenWeather API = bd5e378503939ddaee76f12ad7a97608
 Leaflet GeoCoding
-    
+Kalau mau nilai 100 harus bisa di gunakan atau bisa di host

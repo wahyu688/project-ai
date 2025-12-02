@@ -6,7 +6,6 @@
     <title>Climate Analysis - Cuacane</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -69,14 +68,12 @@
 
         <section class="section section--historical">
             <div class="container">
-                <h2>Data Historis dan Grafik</h2>
-                <p>Kami menyediakan akses ke dataset historis yang mendalam, memungkinkan pengguna untuk memvisualisasikan tren iklim di lokasi manapun di dunia, memanfaatkan data re-analisis Open-Meteo yang tersedia sejak tahun 1950.</p>
+                <h2>Data Historis dan Grafik (Jakarta - 2025)</h2>
+                <p>Visualisasi tren suhu maksimum harian selama satu tahun terakhir menggunakan data arsip Open-Meteo.</p>
                 
-                <div class="placeholder-graphic" style="height: 450px; background-color: #fff; box-shadow: none; border: 1px solid var(--color-border); padding: 20px;">
+                <div class="placeholder-graphic" style="background: white; padding: 20px; height: 450px; display: block;">
                     <canvas id="historical-chart"></canvas>
                 </div>
-
-                <p class="mt-2 text-center" style="font-size: 0.9rem; color: #666;">Data historis suhu maksimum harian di Jakarta (Latitude: -6.2088, Longitude: 106.8456) selama tahun 2024 (Data simulasi dari Open-Meteo Archive).</p>
             </div>
         </section>
     </main>
@@ -113,6 +110,8 @@
         </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
+
 </body>
 </html>
