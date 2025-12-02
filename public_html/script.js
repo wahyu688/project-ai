@@ -96,7 +96,7 @@ async function fetchWeather(params, targetContainer = document.getElementById('w
     }
 
     try {
-        const response = await fetch(`http://localhost:3000/api/weather?${queryParams}`);
+        const response = await fetch(`/api/weather?${queryParams}`);
         const data = await response.json();
 
         if (loadingCard && document.contains(loadingCard)) {
@@ -200,7 +200,7 @@ async function fetchWeatherNews() {
     newsContainer.innerHTML = `<article class="news-item"><i class="fas fa-spinner fa-spin"></i> Memuat berita terbaru...</article>`;
 
     try {
-        const response = await fetch(`http://localhost:3000/api/weather-news`);
+        const response = await fetch(`/api/weather-news`);
         const data = await response.json();
 
         if (response.status !== 200) {
@@ -586,7 +586,7 @@ async function fetchRouteWeatherAndAdvice(start, end, startTime) {
     }).toString();
 
     try {
-        const response = await fetch(`http://localhost:3000/api/route-weather?${queryParams}`);
+        const response = await fetch(`/api/route-weather?${queryParams}`);
         const data = await response.json();
 
         if (response.status !== 200) {

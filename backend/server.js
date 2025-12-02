@@ -11,7 +11,7 @@ app.use(cors());
 
 // PERHATIAN: __dirname adalah folder tempat server.js berada (yaitu 'backend')
 // Kita perlu keluar satu tingkat (..) untuk mencapai 'public_html'
-const publicPath = path.join(__dirname, '..', 'public_html');
+const publicPath = path.join(__dirname, 'public');
 
 // 1. Melayani File Statis (CSS, JS, Gambar, HTML lainnya)
 app.use(express.static(publicPath));
