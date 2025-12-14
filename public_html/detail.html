@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Cuaca - Cuacane</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+
+    <header class="header">
+        <div class="container header__content">
+            <a href="home.html" class="logo">Cuacane</a>
+            <nav class="nav">
+                <a href="home.html" class="nav__link">Home</a>
+                <a href="service.html" class="nav__link">Service</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="section">
+            <div class="container">
+                <a href="home.html" class="btn btn--link" style="margin-bottom: 20px; display: inline-block;">
+                    <i class="fas fa-arrow-left"></i> Kembali ke Pencarian
+                </a>
+
+                <div id="detail-content" class="weather-detail-card" style="display: none;">
+                    </div>
+
+                <div id="detail-loading" style="text-align: center; margin-top: 50px;">
+                    <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--color-primary);"></i>
+                    <p class="mt-4">Memuat data lengkap...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer__bottom">
+            <p>&copy; 2025 Cuacane. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Script khusus halaman detail untuk membaca URL
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const locationName = params.get('lokasi');
+
+            if (locationName) {
+                // Panggil fungsi khusus detail (akan kita buat di script.js)
+                fetchDetailWeather(locationName);
+            } else {
+                document.getElementById('detail-loading').innerHTML = '<p>Lokasi tidak ditemukan.</p>';
+            }
+        });
+    </script>
+</body>
+</html>
