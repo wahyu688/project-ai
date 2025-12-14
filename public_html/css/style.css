@@ -1002,44 +1002,69 @@ h1, h2, h3 {
     padding-top: 1rem;
 }
 
-/* 1. Ubah Container dari Grid kembali ke Flexbox */
+/* ================================================= */
+/* OVERRIDE KHUSUS RECENT PLACES (HOME PAGE)        */
+/* ================================================= */
+
+/* 1. Ubah Container dari Grid ke Flexbox */
 .recent-places .weather-cards-container {
     display: flex;
-    flex-wrap: wrap; /* Turun ke bawah jika layar sempit */
-    gap: 20px;       /* Jarak antar kartu */
-    justify-content: flex-start; /* Rata kiri */
+    flex-wrap: wrap; 
+    gap: 20px;       
+    justify-content: flex-start; /* Kartu mulai dari kiri */
     margin-top: 1.5rem;
 }
 
-/* 2. Paksa Ukuran Kartu Menjadi Kecil & Fix */
+/* 2. Paksa Ukuran Kartu Kecil & PUSATKAN ISINYA */
 .recent-places .weather-card {
-    width: 210px !important;  /* Lebar tetap */
-    height: 300px !important; /* Tinggi tetap (lebih pendek dari global) */
+    width: 210px !important;  
+    height: 300px !important; 
+    padding: 1.5rem !important; 
     
-    padding: 1.5rem !important; /* Reset padding biar tidak terlalu lega */
-    flex: none; /* Mencegah kartu melar */
+    flex: none; 
+    
+    /* --- PERBAIKAN CENTERING --- */
+    align-items: center !important; /* Paksa semua anak elemen ke tengah horizontal */
+    text-align: center !important;  /* Paksa teks rata tengah */
+    justify-content: space-between; /* Sebar konten atas-bawah */
 }
 
-/* 3. Sesuaikan Ukuran Font di dalam Kartu Kecil */
+/* 3. Area Judul */
 .recent-places .weather-card .city-name {
-    height: 50px; /* Area judul lebih pendek */
+    height: 40px; 
     font-size: 1.1rem;
     margin-bottom: 0;
+    width: 100%; /* Pastikan lebar penuh agar text-align center bekerja */
+    justify-content: center;
 }
 
+/* 4. Area Suhu & Ikon (Wrapper) */
+.recent-places .weather-card .temp-icon-wrapper {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column; /* Ikon di atas/bawah suhu */
+    justify-content: center; /* Tengah vertikal */
+    align-items: center;     /* Tengah horizontal */
+    padding: 0;
+    margin: 0;
+}
+
+/* 5. Ukuran Font Khusus Kartu Kecil */
 .recent-places .weather-card .temp {
-    font-size: 2.8rem; /* Suhu sedikit lebih kecil */
+    font-size: 3rem; /* Ukuran pas untuk kartu kecil */
+    line-height: 1;
+    margin-left: 0; /* Hapus margin aneh jika ada */
 }
 
 .recent-places .weather-card .dynamic-icon i {
-    font-size: 2.5rem; /* Ikon lebih kecil */
-    margin: 5px 0;
+    font-size: 2.5rem; 
+    margin: 10px 0;
+    display: block; /* Pastikan ikon dianggap blok sendiri */
 }
 
-/* Opsional: Sembunyikan tulisan 'Klik untuk detail' di recent places agar bersih */
+/* 6. Sembunyikan 'Klik untuk detail' agar tidak sempit */
 .recent-places .weather-card .click-info {
-    bottom: 10px;
-    font-size: 0.7rem;
+    display: none; 
 }
 
 /* --------------------
