@@ -3,7 +3,7 @@
 // =================================================================================
 // KONFIGURASI GLOBAL
 // =================================================================================
-// API Key OpenWeatherMap (Digunakan untuk layer peta visual saja)
+// GANTI INI DENGAN API KEY ANDA jika ingin menampilkan lapisan peta suhu OWM (optional).
 const OWM_API_KEY = 'bd5e378503939ddaee76f12ad7a97608'; 
 const GLOBAL_CITIES = [
     'Tokyo', 'London', 'New Delhi', 'Cairo', 'Rio de Janeiro', 'Sydney', 'Paris', 'Dubai'
@@ -25,17 +25,18 @@ let rainMarkers = []; // Menyimpan marker/lingkaran cuaca (digunakan untuk fallb
 
 /**
  * Merender kartu cuaca baru.
- * Mendukung klik untuk pindah ke detail.html
+ * DIPERBARUI: Menambahkan event klik untuk membuka detail.html
  */
 function renderWeatherCard(data, targetContainer) {
     const newWeatherCard = document.createElement('div');
     
-    // Style agar terlihat bisa diklik
+    // --- UPDATE: Style agar terlihat bisa diklik ---
     newWeatherCard.style.cursor = 'pointer';
     newWeatherCard.setAttribute('title', 'Klik untuk melihat detail lengkap');
 
-    // Event Listener untuk Pindah Halaman
+    // --- UPDATE: Event Listener untuk Pindah Halaman ---
     newWeatherCard.onclick = function() {
+        // Redirect ke detail.html dengan membawa parameter nama kota
         window.location.href = `detail.html?lokasi=${encodeURIComponent(data.city)}`;
     };
 
@@ -55,8 +56,8 @@ function renderWeatherCard(data, targetContainer) {
         <div class="city-name">${data.city}</div>
         
         <div class="temp-icon-wrapper">
-            <span class="dynamic-icon"><i class="${data.icon}"></i></span> 
             <span class="temp">${Math.round(data.temp)}°</span>
+            <span class="dynamic-icon"><i class="${data.icon}"></i></span> 
         </div>
         
         <div class="condition">${data.condition}</div>
@@ -70,7 +71,7 @@ function renderWeatherCard(data, targetContainer) {
             </span>
         </div>
         
-        <div class="click-info">
+        <div style="margin-top: 15px; font-size: 0.8rem; opacity: 0.7; text-align: center;">
             <i class="fas fa-info-circle"></i> Klik untuk detail
         </div>
     `;
@@ -87,6 +88,7 @@ function renderWeatherCard(data, targetContainer) {
 
 /**
  * Mengambil data cuaca standar (Home & World Forecast).
+ * URL sudah diperbaiki menjadi relatif ('/api/weather')
  */
 async function fetchWeather(params, targetContainer = document.getElementById('weather-result')) {
     const queryParams = new URLSearchParams(params).toString();
@@ -111,6 +113,7 @@ async function fetchWeather(params, targetContainer = document.getElementById('w
     }
 
     try {
+        // UPDATE URL: Menggunakan relative path
         const response = await fetch(`/api/weather?${queryParams}`);
         const data = await response.json();
 
@@ -185,6 +188,7 @@ function renderNews(newsData) {
 function timeSince(date) {
     const seconds = Math.floor((new Date() - date) / 1000);
     let interval = seconds / 31536000;
+
     if (interval > 1) return Math.floor(interval) + " tahun lalu";
     interval = seconds / 2592000;
     if (interval > 1) return Math.floor(interval) + " bulan lalu";
@@ -199,6 +203,7 @@ function timeSince(date) {
 
 /**
  * Mengambil berita cuaca dari backend.
+ * URL sudah diperbaiki menjadi relatif ('/api/weather-news')
  */
 async function fetchWeatherNews() {
     const newsContainer = document.querySelector('.news-list');
@@ -207,6 +212,7 @@ async function fetchWeatherNews() {
     newsContainer.innerHTML = `<article class="news-item"><i class="fas fa-spinner fa-spin"></i> Memuat berita terbaru...</article>`;
 
     try {
+        // UPDATE URL: Relative path
         const response = await fetch(`/api/weather-news`);
         const data = await response.json();
 
@@ -225,7 +231,7 @@ async function fetchWeatherNews() {
 
 
 // =================================================================================
-// LOGIC KHUSUS HALAMAN DETAIL (detail.html) - LENGKAP DENGAN 24 JAM
+// LOGIC KHUSUS HALAMAN DETAIL (detail.html) - BARU
 // =================================================================================
 
 async function fetchDetailWeather(locationName) {
@@ -235,7 +241,7 @@ async function fetchDetailWeather(locationName) {
     if (!container || !loading) return; 
 
     try {
-        // Menggunakan endpoint BARU yang mengambil current + hourly
+        // GUNAKAN ENDPOINT BARU: /api/weather-detail
         const response = await fetch(`/api/weather-detail?location=${encodeURIComponent(locationName)}`);
         const data = await response.json();
 
@@ -249,28 +255,23 @@ async function fetchDetailWeather(locationName) {
 
         // --- BUAT HTML UNTUK PRAKIRAAN 24 JAM ---
         let hourlyHtml = '';
-        if (data.hourly && data.hourly.length > 0) {
-            data.hourly.forEach(hour => {
-                hourlyHtml += `
-                    <div style="
-                        min-width: 90px; 
-                        text-align: center; 
-                        padding: 15px 10px; 
-                        background: #fff; 
-                        border-radius: 12px; 
-                        border: 1px solid #eee;
-                        margin-right: 15px;
-                        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-                    ">
-                        <div style="font-size: 0.85rem; color: #666; margin-bottom: 8px;">${hour.time}</div>
-                        <i class="${hour.icon}" style="font-size: 1.8rem; color: var(--color-primary); margin-bottom: 8px;"></i>
-                        <div style="font-weight: 700; font-size: 1.1rem; color: #333;">${hour.temp}°C</div>
-                    </div>
-                `;
-            });
-        } else {
-            hourlyHtml = '<p style="color: #666;">Data prakiraan per jam tidak tersedia.</p>';
-        }
+        data.hourly.forEach(hour => {
+            hourlyHtml += `
+                <div style="
+                    min-width: 80px; 
+                    text-align: center; 
+                    padding: 10px; 
+                    background: #fff; 
+                    border-radius: 10px; 
+                    border: 1px solid #eee;
+                    margin-right: 10px;
+                ">
+                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">${hour.time}</div>
+                    <i class="${hour.icon}" style="font-size: 1.5rem; color: var(--color-primary); margin-bottom: 5px;"></i>
+                    <div style="font-weight: bold; font-size: 1rem;">${hour.temp}°C</div>
+                </div>
+            `;
+        });
 
         // --- RENDER TAMPILAN DETAIL LENGKAP ---
         container.innerHTML = `
@@ -290,31 +291,30 @@ async function fetchDetailWeather(locationName) {
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 2.5rem; background: #f8f9fa; padding: 1.5rem; border-radius: 12px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 2rem; background: #f8f9fa; padding: 1.5rem; border-radius: 12px;">
                     <div style="text-align: center;">
-                        <i class="fas fa-tint" style="color: #1e90ff; margin-bottom: 8px; font-size: 1.2rem;"></i>
+                        <i class="fas fa-tint" style="color: #1e90ff; margin-bottom: 5px;"></i>
                         <div style="font-size: 0.9rem; color: #888;">Kelembaban</div>
-                        <div style="font-weight: bold; font-size: 1.1rem;">${data.current.humidity}%</div>
+                        <div style="font-weight: bold;">${data.current.humidity}%</div>
                     </div>
                     <div style="text-align: center;">
-                        <i class="fas fa-wind" style="color: #aaa; margin-bottom: 8px; font-size: 1.2rem;"></i>
+                        <i class="fas fa-wind" style="color: #aaa; margin-bottom: 5px;"></i>
                         <div style="font-size: 0.9rem; color: #888;">Angin</div>
-                        <div style="font-weight: bold; font-size: 1.1rem;">${data.current.windSpeed} m/s</div>
+                        <div style="font-weight: bold;">${data.current.windSpeed} m/s</div>
                     </div>
                      <div style="text-align: center;">
-                        <i class="fas fa-eye" style="color: #666; margin-bottom: 8px; font-size: 1.2rem;"></i>
+                        <i class="fas fa-eye" style="color: #666; margin-bottom: 5px;"></i>
                         <div style="font-size: 0.9rem; color: #888;">Jarak Pandang</div>
-                        <div style="font-weight: bold; font-size: 1.1rem;">10 km</div>
+                        <div style="font-weight: bold;">10 km</div>
                     </div>
                 </div>
 
-                <h3 style="margin-bottom: 1.5rem; color: #333; padding-left: 10px; border-left: 5px solid var(--color-primary);">Prakiraan 24 Jam ke Depan</h3>
+                <h3 style="margin-bottom: 1rem; color: #333; padding-left: 5px; border-left: 4px solid var(--color-primary);">Prakiraan 24 Jam ke Depan</h3>
                 <div style="
                     display: flex; 
                     overflow-x: auto; 
-                    padding: 5px 5px 20px 5px; 
+                    padding-bottom: 15px; 
                     scrollbar-width: thin;
-                    gap: 5px;
                 ">
                     ${hourlyHtml}
                 </div>
@@ -383,8 +383,13 @@ function renderHistoricalChart(data) {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                y: { beginAtZero: false, title: { display: true, text: 'Suhu (°C)' } },
-                x: { title: { display: true, text: 'Bulan' } }
+                y: {
+                    beginAtZero: false,
+                    title: { display: true, text: 'Suhu (°C)' }
+                },
+                x: {
+                    title: { display: true, text: 'Bulan' }
+                }
             },
             plugins: {
                 legend: { display: true, position: 'top' },
@@ -401,19 +406,23 @@ async function fetchHistoricalData() {
     const loadingMessage = '<i class="fas fa-spinner fa-spin fa-3x mb-3"></i><p>Memuat data iklim historis...</p>';
     chartContainer.innerHTML = loadingMessage;
     
+    // Lokasi Jakarta, Data 2024
     const LAT = -6.2088; 
     const LON = 106.8456; 
     const START_DATE = '2024-01-01';
     const END_DATE = '2024-12-31';
 
     try {
+        // API Eksternal tetap menggunakan URL lengkap
         const response = await fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${LAT}&longitude=${LON}&start_date=${START_DATE}&end_date=${END_DATE}&daily=temperature_2m_max&timezone=auto`);
+        
         const data = await response.json();
 
         if (response.status !== 200 || !data.daily) {
             chartContainer.innerHTML = '<i class="fas fa-exclamation-triangle fa-3x mb-3"></i><p>Gagal memuat data historis. API Error.</p>';
             return;
         }
+        
         renderHistoricalChart(data.daily);
 
     } catch (error) {
@@ -565,6 +574,7 @@ async function fetchRouteWeatherAndAdvice(start, end, startTime) {
     }).toString();
 
     try {
+        // UPDATE URL: Relative path
         const response = await fetch(`/api/route-weather?${queryParams}`);
         const data = await response.json();
 
@@ -731,16 +741,16 @@ document.addEventListener('DOMContentLoaded', () => {
         GLOBAL_CITIES.forEach(city => fetchWeather({ location: city }, worldContainer));
         initWorldMap();
     }
-    
-    // --- Logika Travel Map Page (LENGKAP DENGAN ADDRESS PRESISION) ---
+
+    // --- Logika Travel Map Page ---
     const mapRouteElement = document.getElementById('map-route');
     if (mapRouteElement) {
         initTravelMap(); 
         const routeForm = document.getElementById('route-form');
         const startInput = document.getElementById('start-location');
         const endInput = document.getElementById('end-location');
-
-        // --- TOMBOL CURRENT LOCATION PRESISI ---
+        
+        // --- LOGIKA BARU: TOMBOL CURRENT LOCATION ---
         const useLocationBtn = document.getElementById('use-location-route-btn');
         if (useLocationBtn) {
             useLocationBtn.addEventListener('click', () => {
@@ -758,55 +768,40 @@ document.addEventListener('DOMContentLoaded', () => {
                     const { latitude, longitude } = position.coords;
                     
                     try {
-                        // Reverse Geocoding (Cari nama jalan dan nomor)
+                        // Reverse Geocoding (Cari nama kota berdasarkan koordinat)
+                        // Menggunakan Nominatim OSM (Gratis & Public)
                         const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
                         const data = await response.json();
                         
-                        // LOGIKA PENYUSUNAN ALAMAT PRESISI
+                        // Ambil komponen alamat yang paling relevan (Kota/Kabupaten/Kecamatan)
                         const address = data.address;
+                        const cityName = address.city || address.town || address.village || address.county || address.state_district || "Lokasi Saya";
                         
-                        // Prioritas: Jalan > Pedestrian > Gedung
-                        const street = address.road || address.pedestrian || address.building || address.amenity || "";
-                        const houseNumber = address.house_number ? `No. ${address.house_number}` : "";
-                        const area = address.city || address.town || address.village || address.county || "";
+                        // Isi kolom input
+                        startInput.value = cityName;
                         
-                        let preciseAddress = "";
-                        
-                        if (street) {
-                            preciseAddress = `${street} ${houseNumber}, ${area}`;
-                        } else {
-                            // Fallback jika di tengah antah berantah
-                            preciseAddress = data.display_name;
-                        }
-
-                        // Bersihkan koma berlebih
-                        preciseAddress = preciseAddress.replace(/,\s*,/g, ',').trim();
-                        if (preciseAddress.startsWith(',')) preciseAddress = preciseAddress.substring(1).trim();
-                        if (preciseAddress.endsWith(',')) preciseAddress = preciseAddress.slice(0, -1).trim();
-
-                        // Isi ke input
-                        startInput.value = preciseAddress;
-                        
+                        // Kembalikan tombol ke semula
                         useLocationBtn.innerHTML = originalText;
                         useLocationBtn.disabled = false;
                         
                     } catch (error) {
                         console.error("Reverse geocoding error:", error);
-                        alert("Gagal mendapatkan nama lokasi otomatis.");
+                        alert("Gagal mendapatkan nama lokasi otomatis. Silakan ketik manual.");
                         useLocationBtn.innerHTML = originalText;
                         useLocationBtn.disabled = false;
                     }
                 }, (error) => {
                     console.error("Geolocation error:", error);
-                    alert("Gagal mengakses lokasi. Pastikan GPS aktif.");
+                    alert("Gagal mengakses lokasi. Pastikan GPS aktif dan izin diberikan.");
                     useLocationBtn.innerHTML = originalText;
                     useLocationBtn.disabled = false;
                 });
             });
         }
-        // ----------------------------------------
+        // ---------------------------------------------
 
         routeForm.addEventListener('submit', (e) => {
+            // ... (kode submit yang lama tetap sama) ...
             e.preventDefault();
             const start = startInput.value.trim();
             const end = endInput.value.trim();
@@ -818,17 +813,5 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('route-message').textContent = 'Mohon masukkan Lokasi Awal dan Tujuan.';
             }
         });
-    }
-
-    // --- Logika Detail Page ---
-    const detailContent = document.getElementById('detail-content');
-    if (detailContent) {
-        const params = new URLSearchParams(window.location.search);
-        const locationName = params.get('lokasi');
-        if (locationName) {
-            fetchDetailWeather(locationName);
-        } else {
-            document.getElementById('detail-loading').innerHTML = '<p>Lokasi tidak ditemukan.</p>';
-        }
     }
 });
