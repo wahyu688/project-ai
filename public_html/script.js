@@ -238,11 +238,11 @@ async function fetchDetailWeather(locationName) {
     const container = document.getElementById('detail-content');
     const loading = document.getElementById('detail-loading');
     
-    if (!container || !loading) return; // Guard clause jika bukan di halaman detail
+    if (!container || !loading) return; 
 
     try {
-        // Reuse endpoint yang sama
-        const response = await fetch(`/api/weather?location=${encodeURIComponent(locationName)}`);
+        // GUNAKAN ENDPOINT BARU: /api/weather-detail
+        const response = await fetch(`/api/weather-detail?location=${encodeURIComponent(locationName)}`);
         const data = await response.json();
 
         if (response.status !== 200) {
@@ -253,52 +253,70 @@ async function fetchDetailWeather(locationName) {
         loading.style.display = 'none';
         container.style.display = 'block';
 
-        // Render Tampilan Detail
-        container.innerHTML = `
-            <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; max-width: 700px; margin: 0 auto;">
-                <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem; color: #333;">${data.city}</h1>
-                <p style="color: #666; font-size: 1.1rem; margin-bottom: 2rem;">
-                    ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                </p>
-                
-                <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 2rem; flex-wrap: wrap;">
-                    <i class="${data.icon}" style="font-size: 6rem; color: var(--color-primary);"></i>
-                    <div style="font-size: 5rem; font-weight: 800; color: #333;">${Math.round(data.temp)}°C</div>
+        // --- BUAT HTML UNTUK PRAKIRAAN 24 JAM ---
+        let hourlyHtml = '';
+        data.hourly.forEach(hour => {
+            hourlyHtml += `
+                <div style="
+                    min-width: 80px; 
+                    text-align: center; 
+                    padding: 10px; 
+                    background: #fff; 
+                    border-radius: 10px; 
+                    border: 1px solid #eee;
+                    margin-right: 10px;
+                ">
+                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">${hour.time}</div>
+                    <i class="${hour.icon}" style="font-size: 1.5rem; color: var(--color-primary); margin-bottom: 5px;"></i>
+                    <div style="font-weight: bold; font-size: 1rem;">${hour.temp}°C</div>
                 </div>
-                
-                <div style="font-size: 1.8rem; font-weight: 600; margin-bottom: 2.5rem; text-transform: capitalize; color: #555;">
-                    ${data.condition}
+            `;
+        });
+
+        // --- RENDER TAMPILAN DETAIL LENGKAP ---
+        container.innerHTML = `
+            <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto;">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem; color: #333;">${data.city}</h1>
+                    <p style="color: #666; font-size: 1.1rem;">
+                        ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
                 </div>
 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; text-align: left; background: #f8f9fa; padding: 2rem; border-radius: 12px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <i class="fas fa-tint" style="color: #1e90ff; font-size: 1.5rem; width: 30px;"></i> 
-                        <div>
-                            <div style="font-size: 0.9rem; color: #888;">Kelembaban</div>
-                            <div style="font-size: 1.2rem; font-weight: bold;">${data.humidity}%</div>
-                        </div>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 30px; margin-bottom: 2rem; flex-wrap: wrap;">
+                    <i class="${data.current.icon}" style="font-size: 6rem; color: var(--color-primary);"></i>
+                    <div>
+                        <div style="font-size: 5rem; font-weight: 800; color: #333; line-height: 1;">${Math.round(data.current.temp)}°C</div>
+                        <div style="font-size: 1.5rem; font-weight: 500; color: #555; margin-top: 10px;">${data.current.condition}</div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <i class="fas fa-wind" style="color: #aaa; font-size: 1.5rem; width: 30px;"></i> 
-                        <div>
-                            <div style="font-size: 0.9rem; color: #888;">Kecepatan Angin</div>
-                            <div style="font-size: 1.2rem; font-weight: bold;">${data.windSpeed} m/s</div>
-                        </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 2rem; background: #f8f9fa; padding: 1.5rem; border-radius: 12px;">
+                    <div style="text-align: center;">
+                        <i class="fas fa-tint" style="color: #1e90ff; margin-bottom: 5px;"></i>
+                        <div style="font-size: 0.9rem; color: #888;">Kelembaban</div>
+                        <div style="font-weight: bold;">${data.current.humidity}%</div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <i class="fas fa-compress-arrows-alt" style="color: #666; font-size: 1.5rem; width: 30px;"></i> 
-                        <div>
-                            <div style="font-size: 0.9rem; color: #888;">Tekanan Udara</div>
-                            <div style="font-size: 1.2rem; font-weight: bold;">1012 hPa</div>
-                        </div>
+                    <div style="text-align: center;">
+                        <i class="fas fa-wind" style="color: #aaa; margin-bottom: 5px;"></i>
+                        <div style="font-size: 0.9rem; color: #888;">Angin</div>
+                        <div style="font-weight: bold;">${data.current.windSpeed} m/s</div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <i class="fas fa-eye" style="color: #666; font-size: 1.5rem; width: 30px;"></i> 
-                        <div>
-                            <div style="font-size: 0.9rem; color: #888;">Jarak Pandang</div>
-                            <div style="font-size: 1.2rem; font-weight: bold;">10 km</div>
-                        </div>
+                     <div style="text-align: center;">
+                        <i class="fas fa-eye" style="color: #666; margin-bottom: 5px;"></i>
+                        <div style="font-size: 0.9rem; color: #888;">Jarak Pandang</div>
+                        <div style="font-weight: bold;">10 km</div>
                     </div>
+                </div>
+
+                <h3 style="margin-bottom: 1rem; color: #333; padding-left: 5px; border-left: 4px solid var(--color-primary);">Prakiraan 24 Jam ke Depan</h3>
+                <div style="
+                    display: flex; 
+                    overflow-x: auto; 
+                    padding-bottom: 15px; 
+                    scrollbar-width: thin;
+                ">
+                    ${hourlyHtml}
                 </div>
             </div>
         `;

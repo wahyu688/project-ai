@@ -305,6 +305,82 @@ app.get('/api/weather-news', async (req, res) => {
     }
 });
 
+// --- API BARU: Detail Cuaca dengan Prakiraan 24 Jam ---
+app.get('/api/weather-detail', async (req, res) => {
+    let { location } = req.query;
+
+    if (!location) {
+        return res.status(400).json({ error: 'Location parameter is required' });
+    }
+
+    try {
+        // 1. Geocoding
+        const geoLoc = await geocodeLocation(location);
+
+        // 2. Fetch Data Lengkap (Current + Hourly 24 jam)
+        const weatherResponse = await axios.get(OPEN_METEO_BASE_URL, {
+            params: {
+                latitude: geoLoc.lat,
+                longitude: geoLoc.lon,
+                current: 'temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,is_day',
+                hourly: 'temperature_2m,weather_code,is_day', // Ambil data per jam
+                temperature_unit: 'celsius',
+                wind_speed_unit: 'ms',
+                timezone: 'auto',
+                forecast_days: 2 // Ambil 2 hari untuk jaga-jaga pergantian hari
+            }
+        });
+
+        const data = weatherResponse.data;
+        const current = data.current;
+        const hourly = data.hourly;
+
+        // Map Current Condition
+        const currentWmo = mapWeatherCode(current.weather_code, current.is_day === 1);
+
+        // Proses Data Hourly (Ambil 24 jam ke depan mulai dari jam sekarang)
+        const currentHour = new Date().getHours();
+        const next24Hours = [];
+
+        // Cari index jam sekarang di data hourly
+        let startIndex = hourly.time.findIndex(t => new Date(t).getHours() === currentHour);
+        if (startIndex === -1) startIndex = 0; // Fallback
+
+        for (let i = 0; i < 24; i++) {
+            const index = startIndex + i;
+            if (index >= hourly.time.length) break;
+
+            const timeStr = hourly.time[index];
+            const isDay = hourly.is_day[index] === 1;
+            const code = hourly.weather_code[index];
+            const wmo = mapWeatherCode(code, isDay);
+
+            next24Hours.push({
+                time: new Date(timeStr).getHours() + ':00', // Format jam (misal 14:00)
+                temp: Math.round(hourly.temperature_2m[index]),
+                icon: wmo.iconClass,
+                condition: wmo.conditionText
+            });
+        }
+
+        res.json({
+            city: geoLoc.name,
+            current: {
+                temp: current.temperature_2m,
+                humidity: current.relative_humidity_2m,
+                windSpeed: current.wind_speed_10m,
+                condition: currentWmo.conditionText,
+                icon: currentWmo.iconClass
+            },
+            hourly: next24Hours
+        });
+
+    } catch (error) {
+        console.error("Error detailed weather:", error.message);
+        res.status(500).json({ error: 'Failed to fetch detailed weather.' });
+    }
+});
+
 
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
