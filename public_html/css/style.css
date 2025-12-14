@@ -259,9 +259,11 @@ h1, h2, h3 {
 
 .weather-cards-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    /* Membuat kolom otomatis yang responsif */
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1.5rem;
-    align-items: stretch;
+    /* PENTING: align-items stretch membuat semua anak (kartu) sama tinggi */
+    align-items: stretch; 
     margin-top: 2rem;
     width: 100%;
 }
@@ -270,15 +272,18 @@ h1, h2, h3 {
     background-color: var(--color-bg-card-default);
     border-radius: 16px;
     padding: 1.5rem;
+    /* Biarkan lebar mengikuti grid */
     width: 100%; 
+    /* PENTING: height 100% agar kartu mengisi seluruh tinggi baris grid */
     height: 100%; 
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: space-between; /* Menyebar konten secara merata */
     box-shadow: 0 6px 15px var(--color-shadow);
     transition: all var(--transition-time) ease-in-out;
     cursor: pointer;
     position: relative;
+    /* Hapus min-height jika ada, biarkan konten yang mengatur atau grid */
 }
 
 /* Animasi Hover Card */
@@ -298,11 +303,17 @@ h1, h2, h3 {
     font-weight: 700;
     color: inherit;
     margin-bottom: 0.5rem;
-    min-height: 3.5rem;
+    
+    /* TRIK: Berikan tinggi minimal yang cukup untuk 2-3 baris teks */
+    min-height: 3.5rem; 
+    
+    /* Gunakan Flexbox untuk memusatkan teks di area tersebut */
     display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1.2;
+    align-items: center;       /* Tengah secara vertikal */
+    justify-content: center;   /* Tengah secara horizontal */
+    text-align: center;
+    line-height: 1.3;
+    overflow: hidden;          /* Jaga-jaga agar tidak bocor */
 }
 
 .weather-card .temp-icon-wrapper {
@@ -310,7 +321,7 @@ h1, h2, h3 {
     align-items: center;
     justify-content: center;
     margin: 0.5rem 0;
-    flex-grow: 1;
+    flex-grow: 1; /* Mengisi ruang kosong agar elemen bawah terdorong ke dasar */
 }
 
 .weather-card .temp {
