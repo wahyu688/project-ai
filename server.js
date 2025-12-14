@@ -231,11 +231,11 @@ app.get('/api/route-weather', async (req, res) => {
     }
 });
 
-// --- API BERITA (DIPERBARUI: REAL-TIME + FALLBACK) ---
+// --- API BERITA (DIPERBARUI) ---
 app.get('/api/weather-news', async (req, res) => {
     try {
         // 1. Coba ambil data Real-Time dari NASA
-        const rssResponse = await axios.get(NEWS_RSS_URL);
+        const rssResponse = await axios.get(NEWS_RSS_URL, { timeout: 5000 }); // Tambah timeout biar gak kelamaan
         const xmlData = rssResponse.data;
 
         // Parsing XML sederhana dengan Regex
@@ -261,14 +261,19 @@ app.get('/api/weather-news', async (req, res) => {
             }
         }
         
-        // Kirim data real-time
+        // --- PERBAIKAN DI SINI ---
+        // Jika parsing gagal atau hasilnya 0, kita ANGGAP error supaya lari ke catch
+        if (items.length === 0) {
+            throw new Error("Parsing RSS gagal atau feed kosong.");
+        }
+        
+        // Kirim data real-time jika ada
         res.json({ news: items });
 
     } catch (error) {
         console.error("RSS Fetch Error (Switching to Mock Data):", error.message);
         
-        // --- FALLBACK (DATA LAMA ANDA) ---
-        // Jika internet server error atau NASA down, gunakan mock data agar tampilan tidak rusak.
+        // --- FALLBACK (DATA CADANGAN) ---
         const mockNews = [
             {
                 title: "Peringatan Dini Banjir Bandang di Jawa Barat setelah Hujan Ekstrem",
@@ -284,6 +289,11 @@ app.get('/api/weather-news', async (req, res) => {
                 title: "Musim Kemarau Panjang: Petani di Kalimantan Diimbau Waspada Kekeringan",
                 link: "#", source: "Kementerian Pertanian (Cached)",
                 date: new Date(Date.now() - 3600000 * 12).toISOString()
+            },
+            {
+                title: "Fenomena La Niña diprediksi kembali, membawa dampak hujan lebat akhir tahun.",
+                link: "#", source: "Climate Watch",
+                date: new Date(Date.now() - 3600000 * 24).toISOString()
             },
             {
                 title: "Suhu Global pecahkan rekor, bulan ini menjadi yang terpanas dalam sejarah.",
