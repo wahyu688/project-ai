@@ -1002,6 +1002,46 @@ h1, h2, h3 {
     padding-top: 1rem;
 }
 
+/* 1. Ubah Container dari Grid kembali ke Flexbox */
+.recent-places .weather-cards-container {
+    display: flex;
+    flex-wrap: wrap; /* Turun ke bawah jika layar sempit */
+    gap: 20px;       /* Jarak antar kartu */
+    justify-content: flex-start; /* Rata kiri */
+    margin-top: 1.5rem;
+}
+
+/* 2. Paksa Ukuran Kartu Menjadi Kecil & Fix */
+.recent-places .weather-card {
+    width: 210px !important;  /* Lebar tetap */
+    height: 300px !important; /* Tinggi tetap (lebih pendek dari global) */
+    
+    padding: 1.5rem !important; /* Reset padding biar tidak terlalu lega */
+    flex: none; /* Mencegah kartu melar */
+}
+
+/* 3. Sesuaikan Ukuran Font di dalam Kartu Kecil */
+.recent-places .weather-card .city-name {
+    height: 50px; /* Area judul lebih pendek */
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+
+.recent-places .weather-card .temp {
+    font-size: 2.8rem; /* Suhu sedikit lebih kecil */
+}
+
+.recent-places .weather-card .dynamic-icon i {
+    font-size: 2.5rem; /* Ikon lebih kecil */
+    margin: 5px 0;
+}
+
+/* Opsional: Sembunyikan tulisan 'Klik untuk detail' di recent places agar bersih */
+.recent-places .weather-card .click-info {
+    bottom: 10px;
+    font-size: 0.7rem;
+}
+
 /* --------------------
    RESPONSIVE DESIGN
    -------------------- */
