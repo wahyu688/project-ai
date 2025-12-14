@@ -741,7 +741,7 @@ document.addEventListener('DOMContentLoaded', () => {
         GLOBAL_CITIES.forEach(city => fetchWeather({ location: city }, worldContainer));
         initWorldMap();
     }
-    
+
     // --- Logika Travel Map Page ---
     const mapRouteElement = document.getElementById('map-route');
     if (mapRouteElement) {
@@ -749,8 +749,59 @@ document.addEventListener('DOMContentLoaded', () => {
         const routeForm = document.getElementById('route-form');
         const startInput = document.getElementById('start-location');
         const endInput = document.getElementById('end-location');
+        
+        // --- LOGIKA BARU: TOMBOL CURRENT LOCATION ---
+        const useLocationBtn = document.getElementById('use-location-route-btn');
+        if (useLocationBtn) {
+            useLocationBtn.addEventListener('click', () => {
+                if (!navigator.geolocation) {
+                    alert("Browser Anda tidak mendukung Geolocation.");
+                    return;
+                }
+
+                // Ubah tampilan tombol saat loading
+                const originalText = useLocationBtn.innerHTML;
+                useLocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mencari lokasi...';
+                useLocationBtn.disabled = true;
+
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    
+                    try {
+                        // Reverse Geocoding (Cari nama kota berdasarkan koordinat)
+                        // Menggunakan Nominatim OSM (Gratis & Public)
+                        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
+                        const data = await response.json();
+                        
+                        // Ambil komponen alamat yang paling relevan (Kota/Kabupaten/Kecamatan)
+                        const address = data.address;
+                        const cityName = address.city || address.town || address.village || address.county || address.state_district || "Lokasi Saya";
+                        
+                        // Isi kolom input
+                        startInput.value = cityName;
+                        
+                        // Kembalikan tombol ke semula
+                        useLocationBtn.innerHTML = originalText;
+                        useLocationBtn.disabled = false;
+                        
+                    } catch (error) {
+                        console.error("Reverse geocoding error:", error);
+                        alert("Gagal mendapatkan nama lokasi otomatis. Silakan ketik manual.");
+                        useLocationBtn.innerHTML = originalText;
+                        useLocationBtn.disabled = false;
+                    }
+                }, (error) => {
+                    console.error("Geolocation error:", error);
+                    alert("Gagal mengakses lokasi. Pastikan GPS aktif dan izin diberikan.");
+                    useLocationBtn.innerHTML = originalText;
+                    useLocationBtn.disabled = false;
+                });
+            });
+        }
+        // ---------------------------------------------
 
         routeForm.addEventListener('submit', (e) => {
+            // ... (kode submit yang lama tetap sama) ...
             e.preventDefault();
             const start = startInput.value.trim();
             const end = endInput.value.trim();
