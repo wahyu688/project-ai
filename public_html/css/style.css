@@ -258,27 +258,27 @@ h1, h2, h3 {
 }
 
 .weather-cards-container {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 1.5rem;
-    flex-wrap: wrap;
-    min-height: 250px; 
-    align-items: flex-start;
+    align-items: stretch;
+    margin-top: 2rem;
+    width: 100%;
 }
 
 .weather-card {
     background-color: var(--color-bg-card-default);
     border-radius: 16px;
     padding: 1.5rem;
-    width: 200px;
-    height: auto;
-    min-height: 320px; 
+    width: 100%; 
+    height: 100%; 
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     box-shadow: 0 6px 15px var(--color-shadow);
     transition: all var(--transition-time) ease-in-out;
-    cursor: default;
-    margin-bottom: 10px; /* Jarak aman bawah */
+    cursor: pointer;
+    position: relative;
 }
 
 /* Animasi Hover Card */
@@ -294,10 +294,15 @@ h1, h2, h3 {
 
 .weather-card h2,
 .weather-card .city-name {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: inherit;
-    margin: 0;
+    margin-bottom: 0.5rem;
+    min-height: 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.2;
 }
 
 .weather-card .temp-icon-wrapper {
@@ -305,7 +310,7 @@ h1, h2, h3 {
     align-items: center;
     justify-content: center;
     margin: 0.5rem 0;
-    height: 60px; /* Menjaga konsistensi tinggi untuk suhu/icon */
+    flex-grow: 1;
 }
 
 .weather-card .temp {
