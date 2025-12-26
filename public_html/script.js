@@ -6,9 +6,8 @@
 // GANTI INI DENGAN API KEY ANDA jika ingin menampilkan lapisan peta suhu OWM (optional).
 const OWM_API_KEY = 'bd5e378503939ddaee76f12ad7a97608'; 
 const GLOBAL_CITIES = [
-    'Tokyo', 'Jakarta', 'New Delhi', 'Cairo', 'Rio de Janeiro', 'Sydney', 'Paris', 'Dubai'
+    'Tokyo', 'London', 'New Delhi', 'Cairo', 'Rio de Janeiro', 'Sydney', 'Paris', 'Dubai'
 ];
-const SERVER_URL = 'http://localhost:3000'; // Base URL Backend
 
 
 // =================================================================================
@@ -26,9 +25,21 @@ let rainMarkers = []; // Menyimpan marker/lingkaran cuaca (digunakan untuk fallb
 
 /**
  * Merender kartu cuaca baru.
+ * DIPERBARUI: Menambahkan event klik untuk membuka detail.html
  */
 function renderWeatherCard(data, targetContainer) {
     const newWeatherCard = document.createElement('div');
+    
+    // --- UPDATE: Style agar terlihat bisa diklik ---
+    newWeatherCard.style.cursor = 'pointer';
+    newWeatherCard.setAttribute('title', 'Klik untuk melihat detail lengkap');
+
+    // --- UPDATE: Event Listener untuk Pindah Halaman ---
+    newWeatherCard.onclick = function() {
+        // Redirect ke detail.html dengan membawa parameter nama kota
+        window.location.href = `detail.html?lokasi=${encodeURIComponent(data.city)}`;
+    };
+
     let cardClasses = 'weather-card weather-card--dynamic';
     if (data.isNight) {
         cardClasses += ' weather-card--dark';
@@ -59,6 +70,10 @@ function renderWeatherCard(data, targetContainer) {
                 <i class="fas fa-wind"></i> <span class="detail-label">${data.windSpeed} m/s</span>
             </span>
         </div>
+        
+        <div style="margin-top: 15px; font-size: 0.8rem; opacity: 0.7; text-align: center;">
+            <i class="fas fa-info-circle"></i> Klik untuk detail
+        </div>
     `;
 
     targetContainer.prepend(newWeatherCard);
@@ -73,6 +88,7 @@ function renderWeatherCard(data, targetContainer) {
 
 /**
  * Mengambil data cuaca standar (Home & World Forecast).
+ * URL sudah diperbaiki menjadi relatif ('/api/weather')
  */
 async function fetchWeather(params, targetContainer = document.getElementById('weather-result')) {
     const queryParams = new URLSearchParams(params).toString();
@@ -83,7 +99,6 @@ async function fetchWeather(params, targetContainer = document.getElementById('w
     if (isHomePage) {
         const existingMessage = locationCtaElement ? locationCtaElement.querySelector('.weather-message') : null;
         if (existingMessage) existingMessage.remove();
-        document.querySelectorAll('.weather-card--default').forEach(card => card.remove());
     }
 
     if (isHomePage && !params.lat && !params.lon) {
@@ -93,9 +108,13 @@ async function fetchWeather(params, targetContainer = document.getElementById('w
         targetContainer.prepend(loadingCard);
     }
     
+    if (isHomePage && document.querySelectorAll('.weather-card--default')) {
+         document.querySelectorAll('.weather-card--default').forEach(card => card.remove());
+    }
+
     try {
-        // Menggunakan hardcoded localhost sesuai kode Anda sebelumnya
-        const response = await fetch(`http://localhost:3000/api/weather?${queryParams}`);
+        // UPDATE URL: Menggunakan relative path
+        const response = await fetch(`/api/weather?${queryParams}`);
         const data = await response.json();
 
         if (loadingCard && document.contains(loadingCard)) {
@@ -106,7 +125,7 @@ async function fetchWeather(params, targetContainer = document.getElementById('w
             const errorCard = document.createElement('div');
             errorCard.className = 'weather-card error-card';
             const errorCityName = params.location || (params.lat ? 'Lokasi Saat Ini' : 'Tidak Dikenal');
-            errorCard.innerHTML = `<h2>${errorCityName}</h2><p>Error: ${data.error || 'Gagal mengambil data cuaca.'}</p>`;
+            errorCard.innerHTML = `<h2>${errorCityName}</h2><p>Error ${response.status}: ${data.error || 'Gagal mengambil data cuaca.'}</p>`;
             targetContainer.prepend(errorCard);
             return;
         }
@@ -114,7 +133,7 @@ async function fetchWeather(params, targetContainer = document.getElementById('w
         renderWeatherCard(data, targetContainer);
 
     } catch (error) {
-        console.error('Fetch error (Pastikan server.js berjalan):', error);
+        console.error('Fetch error:', error);
         
         if (loadingCard && document.contains(loadingCard)) {
             targetContainer.removeChild(loadingCard);
@@ -127,6 +146,11 @@ async function fetchWeather(params, targetContainer = document.getElementById('w
             errorText.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Kesalahan Jaringan. Pastikan server.js berjalan.`;
             locationCtaElement.appendChild(errorText);
         }
+        
+        const errorCard = document.createElement('div');
+        errorCard.className = 'weather-card error-card';
+        errorCard.innerHTML = `<h2>Jaringan Gagal</h2><p>Server backend tidak merespon.</p>`;
+        targetContainer.prepend(errorCard);
     }
 }
 
@@ -139,7 +163,7 @@ function renderNews(newsData) {
 
     newsContainer.innerHTML = ''; 
 
-    if (!newsData || newsData.length === 0) {
+    if (newsData.length === 0) {
         newsContainer.innerHTML = '<p class="news-meta">Tidak ada berita cuaca terbaru yang ditemukan.</p>';
         return;
     }
@@ -148,7 +172,7 @@ function renderNews(newsData) {
 
     limitedNews.forEach(item => {
         const date = new Date(item.date);
-        const timeAgo = isNaN(date.getTime()) ? 'Baru saja' : timeSince(date); 
+        const timeAgo = isNaN(date.getTime()) ? 'Beberapa waktu lalu' : timeSince(date); 
         const sourceName = item.source || 'Cuacane';
 
         const article = document.createElement('article');
@@ -164,6 +188,7 @@ function renderNews(newsData) {
 function timeSince(date) {
     const seconds = Math.floor((new Date() - date) / 1000);
     let interval = seconds / 31536000;
+
     if (interval > 1) return Math.floor(interval) + " tahun lalu";
     interval = seconds / 2592000;
     if (interval > 1) return Math.floor(interval) + " bulan lalu";
@@ -176,6 +201,10 @@ function timeSince(date) {
     return "Baru saja";
 }
 
+/**
+ * Mengambil berita cuaca dari backend.
+ * URL sudah diperbaiki menjadi relatif ('/api/weather-news')
+ */
 async function fetchWeatherNews() {
     const newsContainer = document.querySelector('.news-list');
     if (!newsContainer) return;
@@ -183,7 +212,8 @@ async function fetchWeatherNews() {
     newsContainer.innerHTML = `<article class="news-item"><i class="fas fa-spinner fa-spin"></i> Memuat berita terbaru...</article>`;
 
     try {
-        const response = await fetch(`http://localhost:3000/api/weather-news`);
+        // UPDATE URL: Relative path
+        const response = await fetch(`/api/weather-news`);
         const data = await response.json();
 
         if (response.status !== 200) {
@@ -201,41 +231,151 @@ async function fetchWeatherNews() {
 
 
 // =================================================================================
-// LOGIC KHUSUS CLIMATE PAGE (PERBAIKAN UTAMA DI SINI)
+// LOGIC KHUSUS HALAMAN DETAIL (detail.html) - BARU
+// =================================================================================
+
+async function fetchDetailWeather(locationName) {
+    const container = document.getElementById('detail-content');
+    const loading = document.getElementById('detail-loading');
+    
+    if (!container || !loading) return; 
+
+    try {
+        // GUNAKAN ENDPOINT BARU: /api/weather-detail
+        const response = await fetch(`/api/weather-detail?location=${encodeURIComponent(locationName)}`);
+        const data = await response.json();
+
+        if (response.status !== 200) {
+            loading.innerHTML = `<p style="color: red;">Error: ${data.error || 'Gagal mengambil data'}</p>`;
+            return;
+        }
+
+        loading.style.display = 'none';
+        container.style.display = 'block';
+
+        // --- BUAT HTML UNTUK PRAKIRAAN 24 JAM ---
+        let hourlyHtml = '';
+        data.hourly.forEach(hour => {
+            hourlyHtml += `
+                <div style="
+                    min-width: 80px; 
+                    text-align: center; 
+                    padding: 10px; 
+                    background: #fff; 
+                    border-radius: 10px; 
+                    border: 1px solid #eee;
+                    margin-right: 10px;
+                ">
+                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">${hour.time}</div>
+                    <i class="${hour.icon}" style="font-size: 1.5rem; color: var(--color-primary); margin-bottom: 5px;"></i>
+                    <div style="font-weight: bold; font-size: 1rem;">${hour.temp}°C</div>
+                </div>
+            `;
+        });
+
+        // --- RENDER TAMPILAN DETAIL LENGKAP ---
+        container.innerHTML = `
+            <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto;">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem; color: #333;">${data.city}</h1>
+                    <p style="color: #666; font-size: 1.1rem;">
+                        ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
+                </div>
+
+                <div style="display: flex; justify-content: center; align-items: center; gap: 30px; margin-bottom: 2rem; flex-wrap: wrap;">
+                    <i class="${data.current.icon}" style="font-size: 6rem; color: var(--color-primary);"></i>
+                    <div>
+                        <div style="font-size: 5rem; font-weight: 800; color: #333; line-height: 1;">${Math.round(data.current.temp)}°C</div>
+                        <div style="font-size: 1.5rem; font-weight: 500; color: #555; margin-top: 10px;">${data.current.condition}</div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 2rem; background: #f8f9fa; padding: 1.5rem; border-radius: 12px;">
+                    <div style="text-align: center;">
+                        <i class="fas fa-tint" style="color: #1e90ff; margin-bottom: 5px;"></i>
+                        <div style="font-size: 0.9rem; color: #888;">Kelembaban</div>
+                        <div style="font-weight: bold;">${data.current.humidity}%</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <i class="fas fa-wind" style="color: #aaa; margin-bottom: 5px;"></i>
+                        <div style="font-size: 0.9rem; color: #888;">Angin</div>
+                        <div style="font-weight: bold;">${data.current.windSpeed} m/s</div>
+                    </div>
+                     <div style="text-align: center;">
+                        <i class="fas fa-eye" style="color: #666; margin-bottom: 5px;"></i>
+                        <div style="font-size: 0.9rem; color: #888;">Jarak Pandang</div>
+                        <div style="font-weight: bold;">10 km</div>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 1rem; color: #333; padding-left: 5px; border-left: 4px solid var(--color-primary);">Prakiraan 24 Jam ke Depan</h3>
+                <div style="
+                    display: flex; 
+                    overflow-x: auto; 
+                    padding-bottom: 15px; 
+                    scrollbar-width: thin;
+                ">
+                    ${hourlyHtml}
+                </div>
+            </div>
+        `;
+
+    } catch (error) {
+        console.error(error);
+        loading.innerHTML = `<p style="color: red;">Gagal memuat data detail.</p>`;
+    }
+}
+
+
+// =================================================================================
+// LOGIC KHUSUS CLIMATE PAGE (climate.html)
 // =================================================================================
 
 function renderHistoricalChart(data) {
-    const canvas = document.getElementById('historical-chart');
-    if (!canvas) return;
+    const ctx = document.getElementById('historical-chart');
+    if (!ctx || typeof Chart === 'undefined') return;
     
-    if (typeof Chart === 'undefined') {
-        const msg = '<div style="text-align:center; padding:20px; color:red;">Error: Library Chart.js tidak ditemukan. Pastikan Anda sudah mengupdate file <b>climate.html</b>.</div>';
-        if(canvas.parentElement) canvas.parentElement.innerHTML = msg;
-        return;
+    ctx.parentElement.innerHTML = '<canvas id="historical-chart" style="width: 100%; height: 100%;"></canvas>';
+    const finalCtx = document.getElementById('historical-chart').getContext('2d');
+    
+    const labels = data.time.map(t => {
+        const date = new Date(t);
+        return date.toLocaleString('id-ID', { month: 'short', year: 'numeric' });
+    }).filter((value, index, self) => self.indexOf(value) === index); 
+    
+    const monthlyMaxTemps = [];
+    const monthlyDataMap = {}; 
+
+    data.time.forEach((timeStr, index) => {
+        const monthYear = new Date(timeStr).toLocaleString('id-ID', { month: 'short', year: 'numeric' });
+        const temp = data.temperature_2m_max[index];
+        
+        if (!monthlyDataMap[monthYear]) {
+            monthlyDataMap[monthYear] = [];
+        }
+        monthlyDataMap[monthYear].push(temp);
+    });
+
+    for (const monthYear of labels) {
+        const sum = monthlyDataMap[monthYear].reduce((a, b) => a + b, 0);
+        const avg = sum / monthlyDataMap[monthYear].length;
+        monthlyMaxTemps.push(parseFloat(avg.toFixed(1)));
     }
 
-    const ctx = canvas.getContext('2d');
-    
-    const labels = data.time.map(t => new Date(t).toLocaleString('id-ID', { month: 'short', day: 'numeric' }));
-    const temps = data.temperature_2m_max;
 
-    if (window.myHistoricalChart) {
-        window.myHistoricalChart.destroy();
-    }
-
-    window.myHistoricalChart = new Chart(ctx, {
+    new Chart(finalCtx, {
         type: 'line',
         data: {
             labels: labels,
             datasets: [{
-                label: 'Suhu Maksimum Harian 2025 (°C)',
-                data: temps,
+                label: 'Suhu Maks. Bulanan Rata-Rata (°C)',
+                data: monthlyMaxTemps,
                 borderColor: 'rgb(30, 144, 255)', 
                 backgroundColor: 'rgba(30, 144, 255, 0.1)',
-                borderWidth: 1,
-                pointRadius: 0,
-                hitRadius: 10,
-                tension: 0.3,
+                borderWidth: 2,
+                pointRadius: 4,
+                tension: 0.4,
                 fill: true
             }]
         },
@@ -243,12 +383,17 @@ function renderHistoricalChart(data) {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                y: { beginAtZero: false, title: { display: true, text: 'Suhu (°C)' } },
-                x: { ticks: { maxTicksLimit: 12 } }
+                y: {
+                    beginAtZero: false,
+                    title: { display: true, text: 'Suhu (°C)' }
+                },
+                x: {
+                    title: { display: true, text: 'Bulan' }
+                }
             },
             plugins: {
                 legend: { display: true, position: 'top' },
-                tooltip: { mode: 'index', intersect: false }
+                title: { display: true, text: 'Tren Suhu Maksimum Harian Tahunan (Jakarta)' }
             }
         }
     });
@@ -258,83 +403,62 @@ async function fetchHistoricalData() {
     const chartContainer = document.querySelector('.section--historical .placeholder-graphic');
     if (!chartContainer) return;
     
-    // Tampilkan Loading Spinner
-    chartContainer.innerHTML = '<div style="text-align:center; padding-top: 50px;"><i class="fas fa-spinner fa-spin fa-3x mb-3"></i><p>Memuat data iklim historis...</p></div>';
+    const loadingMessage = '<i class="fas fa-spinner fa-spin fa-3x mb-3"></i><p>Memuat data iklim historis...</p>';
+    chartContainer.innerHTML = loadingMessage;
     
+    // Lokasi Jakarta, Data 2024
     const LAT = -6.2088; 
     const LON = 106.8456; 
-    const START_DATE = '2025-01-01';
-    const END_DATE = '2025-11-10';
+    const START_DATE = '2024-01-01';
+    const END_DATE = '2024-12-31';
 
     try {
+        // API Eksternal tetap menggunakan URL lengkap
         const response = await fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${LAT}&longitude=${LON}&start_date=${START_DATE}&end_date=${END_DATE}&daily=temperature_2m_max&timezone=auto`);
+        
         const data = await response.json();
 
         if (response.status !== 200 || !data.daily) {
-            chartContainer.innerHTML = '<p>Data historis tidak tersedia saat ini.</p>';
+            chartContainer.innerHTML = '<i class="fas fa-exclamation-triangle fa-3x mb-3"></i><p>Gagal memuat data historis. API Error.</p>';
             return;
         }
         
-        // --- FIX PENTING ---
-        // Hapus spinner dan Buat Ulang Element Canvas
-        // Ini wajib dilakukan karena innerHTML='...spinner...' di atas telah menghapus canvas asli
-        chartContainer.innerHTML = ''; 
-        const newCanvas = document.createElement('canvas');
-        newCanvas.id = 'historical-chart';
-        newCanvas.style.width = '100%';
-        newCanvas.style.height = '100%';
-        chartContainer.appendChild(newCanvas);
-
-        // Render Chart
         renderHistoricalChart(data.daily);
 
     } catch (error) {
         console.error('Fetch historical data error:', error);
-        chartContainer.innerHTML = '<div style="text-align:center; padding-top:50px; color:red;"><i class="fas fa-exclamation-triangle fa-2x mb-2"></i><p>Gagal mengambil data. Cek koneksi internet.</p></div>';
+        chartContainer.innerHTML = '<i class="fas fa-exclamation-triangle fa-3x mb-3"></i><p>Kesalahan Jaringan. Gagal koneksi ke API Open-Meteo.</p>';
     }
 }
 
 
 // =================================================================================
-// LOGIC PETA (HOME & WORLD)
+// LOGIC KHUSUS PETA & RUTE (Home, World, Travel)
 // =================================================================================
 
 function initHomeMap() {
     const mapElement = document.getElementById('home-weather-map');
-    
-    if (!mapElement || typeof L === 'undefined') {
-        return;
-    }
+    if (!mapElement || typeof L === 'undefined') return;
     
     const map = L.map('home-weather-map').setView([0, 100], 3);
     
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        maxZoom: 18,
-        minZoom: 2,
+        maxZoom: 18, minZoom: 2,
     }).addTo(map);
     
     if (OWM_API_KEY && OWM_API_KEY !== 'YOUR_OWM_API_KEY') {
         const precipitationLayer = L.tileLayer('https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=' + OWM_API_KEY, {
-            maxZoom: 18,
-            opacity: 0.6,
+            maxZoom: 18, opacity: 0.6,
             attribution: 'Curah Hujan &copy; <a href="https://openweathermap.org">OWM</a>'
         }).addTo(map);
-        
         L.control.layers(null, { "Curah Hujan": precipitationLayer }, { collapsed: true }).addTo(map);
-        
     } else {
-        L.marker([0, 100]).addTo(map)
-             .bindPopup('<b>Peringatan</b><br>API Key OWM diperlukan untuk lapisan cuaca real-time.').openPopup();
+        L.marker([0, 100]).addTo(map).bindPopup('<b>Peringatan</b><br>API Key OWM diperlukan.').openPopup();
     }
     
-    setTimeout(() => { map.invalidateSize(); }, 200); 
+    setTimeout(() => { map.invalidateSize(); }, 100); 
 }
-
-
-// =================================================================================
-// LOGIC KHUSUS PETA DUNIA (world_forecast.html)
-// =================================================================================
 
 function initWorldMap() {
     const mapElement = document.getElementById('temperature-map');
@@ -343,51 +467,19 @@ function initWorldMap() {
     const map = L.map('temperature-map').setView([20, 0], 2);
     
     const baseLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        maxZoom: 18,
-        minZoom: 2,
+        attribution: '&copy; OSM &copy; CARTO',
+        maxZoom: 18, minZoom: 2,
     }).addTo(map);
-    
-    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    });
-
-    let baseLayers = { "CARTO Light": baseLayer, "OSM Standard": osmLayer };
-    let overlayLayers = {};
-    const warningText = document.querySelector('.weather-map-container p.mt-2');
     
     if (OWM_API_KEY && OWM_API_KEY !== 'YOUR_OWM_API_KEY') {
         const tempOverlayLayer = L.tileLayer('https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=' + OWM_API_KEY, {
-            maxZoom: 18,
-            opacity: 0.7, 
+            maxZoom: 18, opacity: 0.7, 
             attribution: 'Suhu &copy; <a href="https://openweathermap.org">OWM</a>'
-        });
-        overlayLayers["Suhu Global"] = tempOverlayLayer;
-        
-    } else {
-        const fallbackMarkers = [
-            [35.6895, 139.6917, "Tokyo"], [51.5074, -0.1278, "London"],
-            [28.6139, 77.2090, "New Delhi"], [-6.2088, 106.8456, "Jakarta"]
-        ];
-        fallbackMarkers.forEach(coord => {
-            L.marker([coord[0], coord[1]]).addTo(map)
-             .bindPopup(`<b>${coord[2]}</b><br>API Key Diperlukan untuk Lapisan Suhu`);
-        });
-        
-        if (warningText) {
-             warningText.style.display = 'block';
-             warningText.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Data suhu tidak dapat dimuat. Mohon masukkan API Key OWM yang valid.';
-        }
+        }).addTo(map);
+        L.control.layers({ "Base": baseLayer }, { "Suhu Global": tempOverlayLayer }, { collapsed: false }).addTo(map);
     }
-
-    L.control.layers(baseLayers, overlayLayers, { collapsed: false }).addTo(map);
     L.control.scale({ imperial: false }).addTo(map); 
 }
-
-
-// =================================================================================
-// LOGIC KHUSUS PETA PERJALANAN (travel_map.html)
-// =================================================================================
 
 function clearRainMarkers() {
     if (weatherOverlay && routeMap.hasLayer(weatherOverlay)) {
@@ -395,9 +487,7 @@ function clearRainMarkers() {
         weatherOverlay = null;
     }
     rainMarkers.forEach(marker => {
-        if (routeMap && routeMap.hasLayer(marker)) {
-            routeMap.removeLayer(marker);
-        }
+        if (routeMap && routeMap.hasLayer(marker)) routeMap.removeLayer(marker);
     });
     rainMarkers = [];
 }
@@ -411,8 +501,6 @@ function getWeatherColor(temp, wmoCode) {
 }
 
 function renderHourlyForecast(forecast) {
-    if (!forecast || forecast.length === 0) return '';
-    
     let html = '';
     html += '<div style="display: flex; gap: 10px; justify-content: start; border-top: 1px solid var(--color-border); padding-top: 1rem; margin-top: 1rem; overflow-x: auto;">';
     
@@ -421,13 +509,9 @@ function renderHourlyForecast(forecast) {
     limitedForecast.forEach(f => {
         const temp = Math.round(f.temp);
         let iconColor = '#888'; 
-        if (f.rain > 0.1) {
-            iconColor = '#1e90ff';
-        } else if (temp >= 30) {
-            iconColor = '#dc2626'; 
-        } else if (temp >= 20) {
-            iconColor = '#facc15'; 
-        }
+        if (f.rain > 0.1) iconColor = '#1e90ff';
+        else if (temp >= 30) iconColor = '#dc2626'; 
+        else if (temp >= 20) iconColor = '#facc15'; 
         
         html += `
             <div class="weather-card" style="width: 110px; height: auto; padding: 10px; flex-shrink: 0; box-shadow: none; border: 1px solid #eee;">
@@ -442,11 +526,12 @@ function renderHourlyForecast(forecast) {
     return html;
 }
 
-function renderAIAdvice(advice) {
+function renderAIAdvice(advice, rainPoints) {
     const advisorOutput = document.getElementById('ai-advisor-output');
     const advisorContent = document.getElementById('advisor-content');
     
     let html = '';
+    
     let recommendationIcon = 'fas fa-umbrella-beach';
     let recommendationText = 'Cuaca Cenderung Cerah. Payung tidak wajib.';
     let recommendationClass = '';
@@ -465,11 +550,11 @@ function renderAIAdvice(advice) {
             <span>${recommendationText}</span>
         </div>
         <p class="mt-2 text-sm text-gray-500">
-            Analisis didasarkan pada prakiraan 3 jam ke depan dari waktu saat ini.
+            *Analisis didasarkan pada prakiraan 3 jam ke depan dari waktu saat ini.
         </p>
     `;
     
-    html += '<h5 style="font-weight: 700; margin-top: 1.5rem; color: var(--color-text-dark); font-size: 1.1rem;">Prakiraan Cuaca 3 Jam ke Depan (Titik Awal):</h5>';
+    html += '<h5 style="font-weight: 700; margin-top: 1.5rem; color: var(--color-text-dark); font-size: 1.1rem;">Prakiraan Cuaca 3 Jam ke Depan:</h5>';
     html += renderHourlyForecast(advice.forecast);
 
     advisorContent.innerHTML = html;
@@ -485,13 +570,12 @@ async function fetchRouteWeatherAndAdvice(start, end, startTime) {
     clearRainMarkers();
     
     const queryParams = new URLSearchParams({
-        start: start,
-        end: end,
-        startTime: startTime 
+        start: start, end: end, startTime: startTime 
     }).toString();
 
     try {
-        const response = await fetch(`http://localhost:3000/api/route-weather?${queryParams}`);
+        // UPDATE URL: Relative path
+        const response = await fetch(`/api/route-weather?${queryParams}`);
         const data = await response.json();
 
         if (response.status !== 200) {
@@ -506,22 +590,17 @@ async function fetchRouteWeatherAndAdvice(start, end, startTime) {
             L.latLng(data.end.lat, data.end.lon)
         ];
         
-        if (routeControl) {
-            routeMap.removeControl(routeControl);
-        }
+        if (routeControl) routeMap.removeControl(routeControl);
 
         routeControl = L.Routing.control({
             waypoints: waypoints,
-            routeWhileDragging: false,
-            show: false, 
+            routeWhileDragging: false, show: false,
             lineOptions: { styles: [{ color: '#1e90ff', weight: 6, opacity: 0.7 }] },
             showAlternatives: false,
         }).addTo(routeMap);
         
         routeControl.on('routesfound', function(e) {
-            const bbox = e.routes[0].coordinates.reduce((bounds, coord) => {
-                return bounds.extend(coord);
-            }, L.latLngBounds(waypoints[0], waypoints[1]));
+            const bbox = e.routes[0].coordinates.reduce((bounds, coord) => bounds.extend(coord), L.latLngBounds(waypoints[0], waypoints[1]));
             routeMap.fitBounds(bbox.pad(0.5)); 
 
             const routingContainer = routeControl.getContainer();
@@ -529,33 +608,33 @@ async function fetchRouteWeatherAndAdvice(start, end, startTime) {
                  const instructions = routingContainer.querySelector('.leaflet-routing-instructions');
                  if (instructions) instructions.style.display = 'none';
                  const summaryPanel = routingContainer.querySelector('.leaflet-routing-alt');
-                 if (summaryPanel) {
-                     summaryPanel.style.cssText = 'position: absolute; top: 10px; left: 10px; padding: 10px; background-color: white; border-radius: 8px; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 90%;';
-                 }
+                 if (summaryPanel) summaryPanel.style.cssText = 'position: absolute; top: 10px; left: 10px; padding: 10px; background-color: white; border-radius: 8px; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 90%;';
             }
             
             if (OWM_API_KEY && OWM_API_KEY !== 'YOUR_OWM_API_KEY') {
                 weatherOverlay = L.tileLayer('https://tile.openweathermap.org/map/precipitation/{z}/{x}/{y}.png?appid=' + OWM_API_KEY, {
                     maxZoom: 18, opacity: 0.6,
-                    attribution: 'Cuaca &copy; <a href="https://openweathermap.org">OWM</a>'
+                    attribution: 'Cuaca &copy; OWM'
                 }).addTo(routeMap);
-
+                routeMessage.textContent = `Rute dari ${data.start.name} ke ${data.end.name} siap ditinjau. (Lapisan curah hujan aktif)`;
             } else if (data.rainPoints && data.rainPoints.length > 0) {
                 data.rainPoints.forEach(p => {
                     const colorProps = getWeatherColor(parseFloat(p.temp), parseInt(p.wmoCode));
                     const circle = L.circle([p.lat, p.lon], {
-                        radius: 2000, color: colorProps.color, 
-                        fillColor: colorProps.fill, fillOpacity: colorProps.opacity, weight: 2
+                        radius: 2000, color: colorProps.color, fillColor: colorProps.fill,
+                        fillOpacity: colorProps.opacity, weight: 2
                     }).addTo(routeMap);
+                    
+                    circle.bindPopup(`<strong>Zona Cuaca Utama (Fallback)</strong><br>Waktu: ${new Date(p.time).getHours()}:00<br>Kondisi: ${p.condition} (${p.temp}°C)<br>${p.precipitation > 0.1 ? `Hujan: ${p.precipitation} mm` : 'Kering'}`);
                     rainMarkers.push(circle); 
                 });
-                routeMessage.textContent = `Rute siap ditinjau. (Visualisasi titik aktif)`;
+                routeMessage.textContent = `Rute dari ${data.start.name} ke ${data.end.name} siap ditinjau. (Visualisasi titik aktif)`;
             } else {
-                 routeMessage.textContent = `Rute siap ditinjau. (Cuaca cerah)`;
+                 routeMessage.textContent = `Rute dari ${data.start.name} ke ${data.end.name} siap ditinjau.`;
             }
         });
         
-        renderAIAdvice(data.advice);
+        renderAIAdvice(data.advice, data.rainPoints);
 
     } catch (error) {
         console.error('Route fetch error:', error);
@@ -563,17 +642,16 @@ async function fetchRouteWeatherAndAdvice(start, end, startTime) {
     }
 }
 
-
 function initTravelMap() {
     const mapElement = document.getElementById('map-route');
     if (!mapElement || typeof L === 'undefined') return;
 
     if (routeMap) routeMap.remove(); 
-    
     routeMap = L.map('map-route').setView([-6.2088, 106.8456], 10); 
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: 'OSM & CARTO'
+        attribution: '&copy; OSM &copy; CARTO',
+        subdomains: 'abcd', maxZoom: 19
     }).addTo(routeMap);
 }
 
@@ -584,20 +662,16 @@ function initTravelMap() {
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // --- Logika Home Page ---
+    // --- Logika Home Page: Pencarian ---
     const searchForm = document.getElementById('search-form');
     if (searchForm) {
         const searchInput = document.getElementById('search-input');
         const homeWeatherResult = document.getElementById('weather-result');
 
-        // Init Map
-        initHomeMap();
-        // Init News
-        fetchWeatherNews();
-
         searchForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const location = searchInput.value.trim();
+
             if (location) {
                 fetchWeather({ location: location }, homeWeatherResult); 
                 searchInput.value = ''; 
@@ -608,6 +682,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Logika Geolocation (Home Page) ---
     const currentLocationBtn = document.getElementById('current-location-btn'); 
     if (currentLocationBtn) {
         currentLocationBtn.addEventListener('click', () => {
@@ -630,45 +705,103 @@ document.addEventListener('DOMContentLoaded', () => {
                     },
                     (error) => {
                         console.error("Geolocation Error:", error);
-                        alert(`Error: ${error.message}. Mohon izinkan akses lokasi.`);
+                        const errorText = document.createElement('p');
+                        errorText.className = 'weather-message text-red-500 mt-2 text-sm';
+                        errorText.style.color = 'red'; 
+                        errorText.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Error: ${error.message}. Mohon izinkan akses lokasi.`;
+                        if (locationCtaElement) locationCtaElement.appendChild(errorText);
+
                         currentLocationBtn.disabled = false;
                         currentLocationBtn.innerHTML = '<i class="fas fa-location-arrow"></i> Gunakan Lokasi Saat Ini';
+                        setTimeout(() => { if (document.contains(errorText)) errorText.remove(); }, 5000);
                     }
                 );
             } else {
-                alert('Geolocation tidak didukung oleh browser Anda.');
+                // ... error handling
             }
         });
     }
+
+    // Inisialisasi peta sidebar di Home Page
+    const homeMapElement = document.getElementById('home-weather-map');
+    if (homeMapElement) initHomeMap();
+    
+    // --- Logika News Fetch (Home Page) ---
+    if (document.querySelector('.news-list')) fetchWeatherNews();
     
     // --- Logika Climate Page ---
-    if (document.getElementById('historical-chart')) {
-        fetchHistoricalData();
-    }
+    const historicalChartElement = document.getElementById('historical-chart');
+    if (historicalChartElement) fetchHistoricalData();
 
     // --- Logika World Forecast Page ---
     const worldContainer = document.getElementById('world-weather-result');
     if (worldContainer) {
         const loadingCard = worldContainer.querySelector('.loading-card');
         if(loadingCard) loadingCard.remove();
-        
-        GLOBAL_CITIES.forEach(city => {
-            fetchWeather({ location: city }, worldContainer);
-        });
-
+        GLOBAL_CITIES.forEach(city => fetchWeather({ location: city }, worldContainer));
         initWorldMap();
     }
-    
+
     // --- Logika Travel Map Page ---
     const mapRouteElement = document.getElementById('map-route');
     if (mapRouteElement) {
         initTravelMap(); 
-
         const routeForm = document.getElementById('route-form');
         const startInput = document.getElementById('start-location');
         const endInput = document.getElementById('end-location');
+        
+        // --- LOGIKA BARU: TOMBOL CURRENT LOCATION ---
+        const useLocationBtn = document.getElementById('use-location-route-btn');
+        if (useLocationBtn) {
+            useLocationBtn.addEventListener('click', () => {
+                if (!navigator.geolocation) {
+                    alert("Browser Anda tidak mendukung Geolocation.");
+                    return;
+                }
+
+                // Ubah tampilan tombol saat loading
+                const originalText = useLocationBtn.innerHTML;
+                useLocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mencari lokasi...';
+                useLocationBtn.disabled = true;
+
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    
+                    try {
+                        // Reverse Geocoding (Cari nama kota berdasarkan koordinat)
+                        // Menggunakan Nominatim OSM (Gratis & Public)
+                        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
+                        const data = await response.json();
+                        
+                        // Ambil komponen alamat yang paling relevan (Kota/Kabupaten/Kecamatan)
+                        const address = data.address;
+                        const cityName = address.city || address.town || address.village || address.county || address.state_district || "Lokasi Saya";
+                        
+                        // Isi kolom input
+                        startInput.value = cityName;
+                        
+                        // Kembalikan tombol ke semula
+                        useLocationBtn.innerHTML = originalText;
+                        useLocationBtn.disabled = false;
+                        
+                    } catch (error) {
+                        console.error("Reverse geocoding error:", error);
+                        alert("Gagal mendapatkan nama lokasi otomatis. Silakan ketik manual.");
+                        useLocationBtn.innerHTML = originalText;
+                        useLocationBtn.disabled = false;
+                    }
+                }, (error) => {
+                    console.error("Geolocation error:", error);
+                    alert("Gagal mengakses lokasi. Pastikan GPS aktif dan izin diberikan.");
+                    useLocationBtn.innerHTML = originalText;
+                    useLocationBtn.disabled = false;
+                });
+            });
+        }
+        // ---------------------------------------------
 
         routeForm.addEventListener('submit', (e) => {
+            // ... (kode submit yang lama tetap sama) ...
             e.preventDefault();
             const start = startInput.value.trim();
             const end = endInput.value.trim();
@@ -677,7 +810,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (start && end) {
                 fetchRouteWeatherAndAdvice(start, end, startHour);
             } else {
-                document.getElementById('route-message').textContent = 'Mohon masukkan Lokasi Awal dan Tujuan yang valid.';
+                document.getElementById('route-message').textContent = 'Mohon masukkan Lokasi Awal dan Tujuan.';
             }
         });
     }

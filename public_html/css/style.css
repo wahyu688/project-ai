@@ -59,20 +59,20 @@ h1, h2, h3 {
 }
 
 .mt-2 { margin-top: 0.5rem; }
-.mt-3 { margin-top: 0.75rem; } /* Tambahan untuk konsistensi di travel_map.html */
-.mt-4 { margin-top: 1rem; }    /* Tambahan untuk konsistensi di travel_map.html */
+.mt-3 { margin-top: 0.75rem; } 
+.mt-4 { margin-top: 1rem; }    
 .mt-5 { margin-top: 3rem; }
-.mb-1 { margin-bottom: 0.25rem; } /* Tambahan untuk konsistensi di travel_map.html */
-.mb-4 { margin-bottom: 1rem; }    /* Tambahan untuk konsistensi di travel_map.html */
-.w-full { width: 100%; }          /* Tambahan untuk konsistensi di travel_map.html */
-.p-3 { padding: 0.75rem; }        /* Tambahan untuk konsistensi di travel_map.html */
-.rounded-lg { border-radius: 0.5rem; } /* Tambahan untuk konsistensi di travel_map.html */
-.block { display: block; }        /* Tambahan untuk konsistensi di travel_map.html */
-.text-sm { font-size: 0.875rem; }  /* Tambahan untuk konsistensi di travel_map.html */
-.font-medium { font-weight: 500; } /* Tambahan untuk konsistensi di travel_map.html */
-.text-gray-700 { color: #4b5563; } /* Tambahan untuk konsistensi di travel_map.html */
-.text-gray-600 { color: #6b7280; } /* Tambahan untuk konsistensi di travel_map.html */
-.text-center { text-align: center; } /* Tambahan untuk konsistensi di world_forecast.html */
+.mb-1 { margin-bottom: 0.25rem; } 
+.mb-4 { margin-bottom: 1rem; }    
+.w-full { width: 100%; }          
+.p-3 { padding: 0.75rem; }        
+.rounded-lg { border-radius: 0.5rem; } 
+.block { display: block; }        
+.text-sm { font-size: 0.875rem; }  
+.font-medium { font-weight: 500; } 
+.text-gray-700 { color: #4b5563; } 
+.text-gray-600 { color: #6b7280; } 
+.text-center { text-align: center; } 
 
 /* --- Button & Animation --- */
 .btn {
@@ -247,7 +247,7 @@ h1, h2, h3 {
 }
 
 
-/* --- Card Cuaca --- */
+/* --- Card Cuaca (UPDATED CONSISTENCY) --- */
 .recent-places h3 {
     font-size: 1rem;
     font-weight: 600;
@@ -258,26 +258,35 @@ h1, h2, h3 {
 }
 
 .weather-cards-container {
-    display: flex;
-    gap: 1.5rem;
-    flex-wrap: wrap;
-    min-height: 250px; 
-    align-items: flex-start;
+    display: grid;
+    /* Membuat kolom otomatis, min width 240px agar kartu tidak terlalu gepeng */
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 25px;
+    margin-top: 2rem;
+    width: 100%;
+    align-items: start;
 }
 
 .weather-card {
     background-color: var(--color-bg-card-default);
     border-radius: 16px;
-    padding: 1.5rem;
-    width: 200px;
-    height: 240px;
-    text-align: center;
-    box-shadow: 0 6px 15px var(--color-shadow);
+    
+    /* Padding bawah 3.5rem untuk memberi ruang info detail */
+    padding: 1.5rem 1.5rem 3.5rem 1.5rem;
+    
+    width: 100%;
+    /* FIXED HEIGHT: Kunci konsistensi */
+    height: 420px;
+    
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: all var(--transition-time) ease-in-out;
-    cursor: default;
+    
+    box-shadow: 0 6px 15px var(--color-shadow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    position: relative; /* Untuk positioning absolute click-info */
+    overflow: hidden;
 }
 
 /* Animasi Hover Card */
@@ -291,55 +300,73 @@ h1, h2, h3 {
     color: var(--color-text-light);
 }
 
+/* Judul Kota yang Konsisten */
 .weather-card h2,
 .weather-card .city-name {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: inherit;
-    margin: 0;
+    margin-bottom: 0.5rem;
+    
+    /* Fixed height container untuk judul */
+    height: 70px;
+    
+    display: flex;
+    align-items: center;       /* Center vertikal */
+    justify-content: center;   /* Center horizontal */
+    text-align: center;
+    line-height: 1.2;
+    overflow: hidden;
 }
 
 .weather-card .temp-icon-wrapper {
     display: flex;
+    flex-direction: column; /* Stack vertikal */
     align-items: center;
     justify-content: center;
-    margin: 0.5rem 0;
-    height: 60px; /* Menjaga konsistensi tinggi untuk suhu/icon */
+    flex-grow: 1; /* Isi ruang sisa */
+    padding: 10px 0;
 }
 
 .weather-card .temp {
-    font-size: 3rem;
+    font-size: 3.5rem;
     font-weight: 800;
     line-height: 1;
 }
 
 .weather-card .dynamic-icon i {
-    font-size: 1.5rem; /* Ukuran icon di samping suhu */
+    font-size: 4rem;
     color: var(--color-primary);
-    margin-left: 5px;
+    margin: 10px 0;
 }
 
 .weather-card .condition {
-    font-size: 0.95rem;
+    font-size: 1rem;
     color: var(--color-text-muted);
+    text-align: center;
+    margin-bottom: 1rem;
+    font-weight: 500;
 }
 
 .weather-card--dark .condition {
     color: #a0c3e8;
 }
 
-/* --- Detail Cuaca --- */
+/* --- Detail Cuaca Kecil (Angin/Lembab) --- */
 .weather-card .details-row {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    margin-top: 1rem;
-    font-size: 0.85rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    width: 100%;
+    font-size: 0.9rem;
     color: var(--color-text-muted);
 }
 
 .weather-card--dark .details-row {
     color: #a0c3e8;
+    border-top: 1px solid rgba(255,255,255,0.1);
 }
 
 .details-row .detail-item i {
@@ -350,17 +377,25 @@ h1, h2, h3 {
     color: #8cafff;
 }
 
+/* Info Klik di Bawah (Absolute) */
+.weather-card .click-info {
+    position: absolute;
+    bottom: 15px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #999;
+    opacity: 0.8;
+}
+
 /* Mengatur Ulang Tata Letak untuk Kartu Dinamis */
 .weather-card--dynamic {
-    height: 240px; /* Menggunakan tinggi penuh */
-    justify-content: space-between;
+    /* height sudah diatur di class utama weather-card */
 }
 .weather-card--default {
-    /* Gaya untuk default yang sudah konsisten dengan dynamic */
-    height: 240px;
-    padding-top: 1.5rem;
+    height: 420px; /* Samakan dengan yang lain */
 }
-/* Menghapus elemen yang tidak perlu pada kartu default */
 .weather-card--default h2 {
     display: none;
 }
@@ -421,9 +456,6 @@ h1, h2, h3 {
     box-shadow: 0 4px 10px rgba(30, 144, 255, 0.1);
 }
 
-/* Di css/style.css */
-
-/* Pastikan container peta memiliki ketinggian dan tidak ada overflow tersembunyi */
 .weather-map-container {
     padding-top: 0;
 }
@@ -433,13 +465,12 @@ h1, h2, h3 {
     width: 100%;
     border-radius: 12px;
     box-shadow: 0 4px 12px var(--color-shadow);
-    z-index: 1; /* Penting untuk Leaflet */
-    margin-top: 1.5rem; /* Tambahan yang hilang */
+    z-index: 1; 
+    margin-top: 1.5rem; 
 }
 
 
 #world-weather-result {
-    /* Gaya Grid diterapkan di script.js, tapi ini defaultnya */
     display: grid; 
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1.5rem;
@@ -447,13 +478,12 @@ h1, h2, h3 {
 }
 
 /* --------------------
-   TRAVEL MAP / ADVISOR (travel_map.html) - KONSISTENSI INPUT DAN LAYOUT
+   TRAVEL MAP / ADVISOR
    -------------------- */
 .section--route-advisor {
-    padding-top: 2rem; /* Memindahkan gaya inline dari section */
+    padding-top: 2rem; 
 }
 
-/* GAYA ROUTE GRID (MEMINDAHKAN DARI INLINE STYLE) */
 .route-grid {
     display: grid;
     grid-template-columns: 350px 1fr;
@@ -479,9 +509,8 @@ h1, h2, h3 {
     z-index: 2;
 }
 
-/* GAYA INPUT KONSISTEN (route-input) - Sudah ada di file ini, tapi kita pastikan ulang */
 .route-input {
-    width: 100%; /* Agar input mengisi seluruh lebar form */
+    width: 100%; 
     padding: 0.75rem 1rem; 
     margin-bottom: 1rem;
     border: 1px solid var(--color-border);
@@ -497,7 +526,6 @@ h1, h2, h3 {
     box-shadow: 0 0 0 2px rgba(30, 144, 255, 0.3);
 }
 
-/* GAYA HASIL ANALISIS AI (MEMINDAHKAN DARI INLINE STYLE) */
 .ai-result-box {
     margin-top: 1.5rem;
     padding: 1rem;
@@ -521,11 +549,11 @@ h1, h2, h3 {
 }
 
 .item-recommendation i {
-    color: #28a745; /* Hijau untuk ikon */
+    color: #28a745; 
 }
 
 .item-recommendation.alert i {
-    color: #ffc107; /* Kuning untuk peringatan */
+    color: #ffc107; 
 }
 
 
@@ -826,7 +854,6 @@ h1, h2, h3 {
 
 
 /* --- ABOUT US PAGE SPECIFIC --- */
-
 .section--about-mission {
     background-color: var(--color-bg-light); 
     padding: 4rem 0;
@@ -864,11 +891,6 @@ h1, h2, h3 {
     margin-bottom: 0.5rem;
 }
 
-/* Styling untuk About Us Page */
-
-/* ... kode CSS sebelumnya ... */
-
-
 /* Team Section */
 .section--team {
     padding: 4rem 0;
@@ -885,34 +907,17 @@ h1, h2, h3 {
 
 .team-member {
     text-align: center;
-    flex: 0 0 200px; /* Lebar tetap untuk setiap anggota */
+    flex: 0 0 200px; 
     display: flex;
     flex-direction: column;
     align-items: center;
-}
-
-.profile-photo {
-    width: 150px; /* Ukuran lingkaran */
-    height: 150px; /* Ukuran lingkaran */
-    border-radius: 50%; /* Membuat bentuk lingkaran */
-    background-color: var(--color-primary); /* Warna latar belakang default (jika gambar belum dimuat) */
-    display: flex; /* Untuk memusatkan teks/gambar di dalam div */
-    justify-content: center; /* Memusatkan horizontal */
-    align-items: center; /* Memusatkan vertikal */
-    color: white; /* Warna teks inisial */
-    font-size: 3rem; /* Ukuran inisial */
-    font-weight: 700;
-    margin-bottom: 1rem;
-    overflow: hidden; /* Penting untuk clipping gambar */
-    object-fit: cover; /* Penting agar gambar mengisi lingkaran tanpa distorsi */
-    border: 3px solid var(--color-primary-dark); /* Border untuk foto */
 }
 
 .team-member img.team-member-photo {
     width: 150px;
     height: 150px;
     border-radius: 50%;
-    object-fit: cover; /* Pastikan gambar mengisi area tanpa terdistorsi */
+    object-fit: cover; 
     margin-bottom: 1rem;
     box-shadow: 0 0 0 5px var(--color-primary);
 }
@@ -927,7 +932,6 @@ h1, h2, h3 {
     color: var(--color-text-dark);
     font-size: 0.95rem;
 }
-
 
 
 /* --------------------
@@ -998,53 +1002,69 @@ h1, h2, h3 {
     padding-top: 1rem;
 }
 
-/* --------------------
-    ROUTE CSS
-   -------------------- */
-.route-input {
-    width: 100%; /* Agar input mengisi seluruh lebar form */
-    padding: 0.75rem 1rem; /* Sedikit lebih kecil dari search-input utama untuk kompak */
-    margin-bottom: 1rem;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    font-size: 1rem;
-    outline: none;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    transition: box-shadow 0.2s, border-color 0.2s;
+/* ================================================= */
+/* OVERRIDE KHUSUS RECENT PLACES (HOME PAGE)        */
+/* ================================================= */
+
+/* 1. Ubah Container dari Grid ke Flexbox */
+.recent-places .weather-cards-container {
+    display: flex;
+    flex-wrap: wrap; 
+    gap: 20px;       
+    justify-content: flex-start; /* Kartu mulai dari kiri */
+    margin-top: 1.5rem;
 }
 
-.route-input:focus {
-    /* Gaya fokus yang konsisten dengan search-input di home.html */
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px var(--color-primary);
+/* 2. Paksa Ukuran Kartu Kecil & PUSATKAN ISINYA */
+.recent-places .weather-card {
+    width: 210px !important;  
+    height: 300px !important; 
+    padding: 1.5rem !important; 
+    
+    flex: none; 
+    
+    /* --- PERBAIKAN CENTERING --- */
+    align-items: center !important; /* Paksa semua anak elemen ke tengah horizontal */
+    text-align: center !important;  /* Paksa teks rata tengah */
+    justify-content: space-between; /* Sebar konten atas-bawah */
 }
 
+/* 3. Area Judul */
+.recent-places .weather-card .city-name {
+    height: 40px; 
+    font-size: 1.1rem;
+    margin-bottom: 0;
+    width: 100%; /* Pastikan lebar penuh agar text-align center bekerja */
+    justify-content: center;
+}
 
-/* Leaflet Routing Machine Overrides (PENTING untuk tampilan) */
-/* Menyembunyikan keseluruhan panel rute kecuali ringkasannya */
-.leaflet-routing-container {
-    background-color: transparent !important;
+/* 4. Area Suhu & Ikon (Wrapper) */
+.recent-places .weather-card .temp-icon-wrapper {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column; /* Ikon di atas/bawah suhu */
+    justify-content: center; /* Tengah vertikal */
+    align-items: center;     /* Tengah horizontal */
     padding: 0;
-    box-shadow: none;
-    line-height: 1.4;
-    font-family: var(--font-family-sans);
+    margin: 0;
 }
 
-/* Menyembunyikan teks instruksi di dalam peta */
-.leaflet-routing-instructions {
-    display: none !important; 
+/* 5. Ukuran Font Khusus Kartu Kecil */
+.recent-places .weather-card .temp {
+    font-size: 3rem; /* Ukuran pas untuk kartu kecil */
+    line-height: 1;
+    margin-left: 0; /* Hapus margin aneh jika ada */
 }
 
-/* Memposisikan Ringkasan Rute (Waktu, Jarak) di sisi peta */
-.leaflet-routing-control {
-    background-color: var(--color-bg-card-default);
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px var(--color-shadow);
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 100; 
+.recent-places .weather-card .dynamic-icon i {
+    font-size: 2.5rem; 
+    margin: 10px 0;
+    display: block; /* Pastikan ikon dianggap blok sendiri */
+}
+
+/* 6. Sembunyikan 'Klik untuk detail' agar tidak sempit */
+.recent-places .weather-card .click-info {
+    display: none; 
 }
 
 /* --------------------
@@ -1084,7 +1104,6 @@ h1, h2, h3 {
         text-align: center;
     }
     
-    /* RESPONSIF KHUSUS TRAVEL MAP */
     .route-grid {
         grid-template-columns: 1fr;
     }
@@ -1129,8 +1148,6 @@ h1, h2, h3 {
     .team-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    
-    
 }
 
 @media (max-width: 600px) {
