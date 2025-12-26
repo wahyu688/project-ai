@@ -230,67 +230,54 @@ app.get('/api/route-weather', async (req, res) => {
     }
 });
 
-// --- API BERITA (DIPERBARUI: REAL-TIME + FALLBACK) ---
+// --- API BERITA (REAL-TIME VIA GOOGLE NEWS RSS) ---
 app.get('/api/weather-news', async (req, res) => {
     try {
-        // 1. Coba ambil data Real-Time dari NASA
-        const rssResponse = await axios.get(NEWS_RSS_URL);
-        const xmlData = rssResponse.data;
+        // 1. URL RSS Google News (Topik: Climate & Weather)
+        // hl=en-US&gl=US artinya kita ambil berita Global dalam Bahasa Inggris (sesuai UI app Anda)
+        const rssUrl = 'https://news.google.com/rss/search?q=weather+climate+environment&hl=en-US&gl=US&ceid=US:en';
+        
+        const response = await axios.get(rssUrl);
+        const xmlData = response.data;
 
-        // Parsing XML sederhana dengan Regex
+        // 2. Parsing XML Manual dengan Regex (Tanpa perlu install library tambahan)
         const items = [];
         const itemRegex = /<item>([\s\S]*?)<\/item>/g;
         let match;
-        let count = 0;
 
-        while ((match = itemRegex.exec(xmlData)) !== null && count < 5) {
+        // Ambil maksimal 6 berita terbaru
+        while ((match = itemRegex.exec(xmlData)) !== null && items.length < 6) {
             const itemContent = match[1];
+            
+            // Ekstrak data spesifik
             const titleMatch = /<title>(.*?)<\/title>/.exec(itemContent);
             const linkMatch = /<link>(.*?)<\/link>/.exec(itemContent);
             const dateMatch = /<pubDate>(.*?)<\/pubDate>/.exec(itemContent);
-            
+            const sourceMatch = /<source url=".*?">(.*?)<\/source>/.exec(itemContent);
+
             if (titleMatch && linkMatch) {
                 items.push({
+                    // Bersihkan karakter aneh jika ada
                     title: titleMatch[1].replace('<![CDATA[', '').replace(']]>', ''),
                     link: linkMatch[1],
-                    source: "NASA Earth Observatory",
-                    date: dateMatch ? new Date(dateMatch[1]).toISOString() : new Date().toISOString()
+                    // Gunakan tanggal publikasi asli atau tanggal sekarang
+                    date: dateMatch ? dateMatch[1] : new Date().toISOString(),
+                    // Ambil nama penerbit (misal: CNN, BBC, Reuters)
+                    source: sourceMatch ? sourceMatch[1] : "Weather News"
                 });
-                count++;
             }
         }
-        
-        // Kirim data real-time
+
+        // 3. Kirim data JSON ke frontend
         res.json({ news: items });
 
     } catch (error) {
-        console.error("RSS Fetch Error (Switching to Mock Data):", error.message);
-        
-        // --- FALLBACK (DATA LAMA ANDA) ---
-        // Jika internet server error atau NASA down, gunakan mock data agar tampilan tidak rusak.
-        const mockNews = [
-            {
-                title: "Peringatan Dini Banjir Bandang di Jawa Barat setelah Hujan Ekstrem",
-                link: "#", source: "BMKG News (Cached)",
-                date: new Date(Date.now() - 3600000).toISOString()
-            },
-            {
-                title: "Badai Tropis Baru terbentuk di Pasifik, diperkirakan menuju Filipina",
-                link: "#", source: "Global Weather Hub (Cached)",
-                date: new Date(Date.now() - 3600000 * 5).toISOString()
-            },
-            {
-                title: "Musim Kemarau Panjang: Petani di Kalimantan Diimbau Waspada Kekeringan",
-                link: "#", source: "Kementerian Pertanian (Cached)",
-                date: new Date(Date.now() - 3600000 * 12).toISOString()
-            },
-            {
-                title: "Suhu Global pecahkan rekor, bulan ini menjadi yang terpanas dalam sejarah.",
-                link: "#", source: "International Climate Agency (Cached)",
-                date: new Date(Date.now() - 3600000 * 30).toISOString()
-            }
-        ];
-        res.json({ news: mockNews });
+        console.error("Error fetching real-time news:", error.message);
+        // Fallback darurat jika Google down (jarang terjadi)
+        res.status(500).json({ 
+            news: [], 
+            error: 'Gagal mengambil berita real-time.' 
+        });
     }
 });
 
