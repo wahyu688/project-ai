@@ -401,33 +401,68 @@ function renderHistoricalChart(data) {
 
 async function fetchHistoricalData() {
     const chartContainer = document.querySelector('.section--historical .placeholder-graphic');
+    // Guard clause: Jika elemen tidak ada (misal di halaman lain), stop.
     if (!chartContainer) return;
     
-    const loadingMessage = '<i class="fas fa-spinner fa-spin fa-3x mb-3"></i><p>Memuat data iklim historis...</p>';
+    // Cek apakah Library Chart.js sudah dimuat
+    if (typeof Chart === 'undefined') {
+        chartContainer.innerHTML = `
+            <div style="text-align:center; color: red; padding: 2rem;">
+                <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
+                <p><strong>Error:</strong> Library Chart.js belum dimuat.</p>
+                <p style="font-size: 0.8rem;">Pastikan Anda menambahkan &lt;script src="..."&gt; Chart.js di file HTML.</p>
+            </div>`;
+        return;
+    }
+
+    // Tampilkan Loading
+    const loadingMessage = `
+        <div style="text-align:center; padding: 2rem;">
+            <i class="fas fa-spinner fa-spin fa-3x mb-3" style="color:var(--color-primary)"></i>
+            <p>Memuat tren suhu 1 tahun terakhir...</p>
+        </div>`;
     chartContainer.innerHTML = loadingMessage;
     
-    // Lokasi Jakarta, Data 2024
+    // --- LOGIKA TANGGAL DINAMIS (REAL-TIME) ---
+    const today = new Date();
+    
+    // End Date: Kita mundur 5 hari karena Archive API biasanya butuh waktu 2-3 hari untuk verifikasi data final
+    const endDateObj = new Date(today);
+    endDateObj.setDate(today.getDate() - 5);
+    
+    // Start Date: Mundur 1 tahun dari End Date
+    const startDateObj = new Date(endDateObj);
+    startDateObj.setFullYear(endDateObj.getFullYear() - 1);
+
+    // Format ke YYYY-MM-DD
+    const formatDate = (date) => date.toISOString().split('T')[0];
+    const START_DATE = formatDate(startDateObj);
+    const END_DATE = formatDate(endDateObj);
+    
+    // Lokasi Jakarta 
     const LAT = -6.2088; 
     const LON = 106.8456; 
-    const START_DATE = '2024-01-01';
-    const END_DATE = '2024-12-31';
 
     try {
-        // API Eksternal tetap menggunakan URL lengkap
-        const response = await fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${LAT}&longitude=${LON}&start_date=${START_DATE}&end_date=${END_DATE}&daily=temperature_2m_max&timezone=auto`);
+        // Fetch ke Open-Meteo Archive API
+        const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${LAT}&longitude=${LON}&start_date=${START_DATE}&end_date=${END_DATE}&daily=temperature_2m_max&timezone=auto`;
         
+        const response = await fetch(url);
         const data = await response.json();
 
         if (response.status !== 200 || !data.daily) {
-            chartContainer.innerHTML = '<i class="fas fa-exclamation-triangle fa-3x mb-3"></i><p>Gagal memuat data historis. API Error.</p>';
-            return;
+            throw new Error("Data API tidak valid atau kosong.");
         }
-        
         renderHistoricalChart(data.daily);
 
     } catch (error) {
         console.error('Fetch historical data error:', error);
-        chartContainer.innerHTML = '<i class="fas fa-exclamation-triangle fa-3x mb-3"></i><p>Kesalahan Jaringan. Gagal koneksi ke API Open-Meteo.</p>';
+        chartContainer.innerHTML = `
+            <div style="text-align:center; color: #dc3545; padding: 2rem;">
+                <i class="fas fa-wifi fa-3x mb-3"></i>
+                <p>Gagal memuat data historis.</p>
+                <p style="font-size:0.8rem;">${error.message}</p>
+            </div>`;
     }
 }
 
