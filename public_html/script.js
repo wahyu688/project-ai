@@ -399,34 +399,102 @@ function renderHistoricalChart(data) {
     });
 }
 
-async function fetchHistoricalData() {
+// =================================================================================
+// LOGIC KHUSUS CLIMATE PAGE (climate.html) - FIXED
+// =================================================================================
+
+function renderHistoricalChart(dailyData) {
+    // 1. Cari container tempat grafik akan muncul
     const chartContainer = document.querySelector('.section--historical .placeholder-graphic');
-    // Guard clause: Jika elemen tidak ada (misal di halaman lain), stop.
     if (!chartContainer) return;
+
+    // 2. Bersihkan container (hapus loading) dan buat Canvas baru
+    chartContainer.innerHTML = '<canvas id="historical-chart" style="width: 100%; height: 100%;"></canvas>';
     
-    // Cek apakah Library Chart.js sudah dimuat
+    // 3. Pastikan Chart.js tersedia
     if (typeof Chart === 'undefined') {
-        chartContainer.innerHTML = `
-            <div style="text-align:center; color: red; padding: 2rem;">
-                <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
-                <p><strong>Error:</strong> Library Chart.js belum dimuat.</p>
-                <p style="font-size: 0.8rem;">Pastikan Anda menambahkan &lt;script src="..."&gt; Chart.js di file HTML.</p>
-            </div>`;
+        chartContainer.innerHTML = '<p style="color:red; text-align:center;">Error: Library Chart.js belum dimuat.</p>';
         return;
     }
 
-    // Tampilkan Loading
-    const loadingMessage = `
-        <div style="text-align:center; padding: 2rem;">
-            <i class="fas fa-spinner fa-spin fa-3x mb-3" style="color:var(--color-primary)"></i>
-            <p>Memuat tren suhu 1 tahun terakhir...</p>
-        </div>`;
-    chartContainer.innerHTML = loadingMessage;
+    const ctx = document.getElementById('historical-chart').getContext('2d');
     
-    // --- LOGIKA TANGGAL DINAMIS (REAL-TIME) ---
+    // 4. Siapkan Data
+    const labels = dailyData.time.map(t => {
+        const date = new Date(t);
+        // Format bulan pendek (Jan, Feb, ...)
+        return date.toLocaleString('id-ID', { month: 'short', year: '2-digit' });
+    });
+    
+    // Agar grafik tidak terlalu padat, kita ambil rata-rata per bulan atau tampilkan semua
+    // Untuk performa lebih baik, kita tampilkan data harian langsung tapi Chart.js akan mengaturnya
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels, // Label tanggal (Sumbu X)
+            datasets: [{
+                label: 'Suhu Maksimum Harian (°C)',
+                data: dailyData.temperature_2m_max, // Data Suhu (Sumbu Y)
+                borderColor: 'rgb(30, 144, 255)', 
+                backgroundColor: 'rgba(30, 144, 255, 0.1)',
+                borderWidth: 2,
+                pointRadius: 1, // Titik kecil agar grafik halus
+                pointHoverRadius: 5,
+                tension: 0.4, // Garis melengkung
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    title: { display: true, text: 'Suhu (°C)' }
+                },
+                x: {
+                    ticks: {
+                        maxTicksLimit: 12 // Batasi label bawah agar tidak menumpuk
+                    }
+                }
+            },
+            plugins: {
+                legend: { display: true, position: 'top' },
+                title: { display: true, text: 'Tren Suhu Maksimum (1 Tahun Terakhir)' },
+                tooltip: {
+                    callbacks: {
+                        title: function(context) {
+                            // Format tooltip tanggal agar lebih enak dibaca
+                            const index = context[0].dataIndex;
+                            return dailyData.time[index]; 
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+async function fetchHistoricalData() {
+    const chartContainer = document.querySelector('.section--historical .placeholder-graphic');
+    if (!chartContainer) return;
+    
+    // Tampilkan Loading
+    chartContainer.innerHTML = `
+        <div style="text-align:center; padding: 3rem;">
+            <i class="fas fa-spinner fa-spin fa-3x mb-3" style="color:var(--color-primary)"></i>
+            <p>Mengambil data historis dari satelit...</p>
+        </div>`;
+    
+    // --- LOGIKA TANGGAL DINAMIS (Mundur 1 Tahun) ---
     const today = new Date();
     
-    // End Date: Kita mundur 5 hari karena Archive API biasanya butuh waktu 2-3 hari untuk verifikasi data final
+    // End Date: Mundur 5 hari (karena data arsip biasanya delay 2-3 hari)
     const endDateObj = new Date(today);
     endDateObj.setDate(today.getDate() - 5);
     
@@ -434,34 +502,34 @@ async function fetchHistoricalData() {
     const startDateObj = new Date(endDateObj);
     startDateObj.setFullYear(endDateObj.getFullYear() - 1);
 
-    // Format ke YYYY-MM-DD
     const formatDate = (date) => date.toISOString().split('T')[0];
     const START_DATE = formatDate(startDateObj);
     const END_DATE = formatDate(endDateObj);
     
-    // Lokasi Jakarta 
-    const LAT = -6.2088; 
+    const LAT = -6.2088; // Jakarta
     const LON = 106.8456; 
 
     try {
-        // Fetch ke Open-Meteo Archive API
         const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${LAT}&longitude=${LON}&start_date=${START_DATE}&end_date=${END_DATE}&daily=temperature_2m_max&timezone=auto`;
         
         const response = await fetch(url);
         const data = await response.json();
 
         if (response.status !== 200 || !data.daily) {
-            throw new Error("Data API tidak valid atau kosong.");
+            throw new Error("Data API kosong atau limit habis.");
         }
+        
+        // Panggil render dengan data yang didapat
         renderHistoricalChart(data.daily);
 
     } catch (error) {
         console.error('Fetch historical data error:', error);
         chartContainer.innerHTML = `
             <div style="text-align:center; color: #dc3545; padding: 2rem;">
-                <i class="fas fa-wifi fa-3x mb-3"></i>
-                <p>Gagal memuat data historis.</p>
+                <i class="fas fa-times-circle fa-3x mb-3"></i>
+                <p>Gagal memuat data.</p>
                 <p style="font-size:0.8rem;">${error.message}</p>
+                <button onclick="fetchHistoricalData()" class="btn btn--primary mt-3" style="font-size:0.8rem;">Coba Lagi</button>
             </div>`;
     }
 }
