@@ -995,8 +995,6 @@ h1, h2, h3 {
 /* ================================================= */
 /* OVERRIDE KHUSUS RECENT PLACES (HOME PAGE)        */
 /* ================================================= */
-
-/* 1. Ubah Container dari Grid ke Flexbox */
 .recent-places .weather-cards-container {
     display: flex;
     flex-wrap: wrap; 
@@ -1051,6 +1049,65 @@ h1, h2, h3 {
 /* 6. Sembunyikan 'Klik untuk detail' agar tidak sempit */
 .recent-places .weather-card .click-info {
     display: none; 
+}
+
+/* ================================================= */
+/* STYLE UNTUK LEGENDA PETA (TRAVEL MAP)            */
+/* ================================================= */
+
+.map-legend {
+    background-color: #fff;
+    padding: 1.5rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.map-legend h4 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    color: var(--color-text-dark);
+    font-weight: 700;
+}
+
+.map-legend h4 i {
+    color: var(--color-primary);
+    margin-right: 5px;
+}
+
+.legend-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 15px;
+    margin-bottom: 1rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+/* Kotak Warna Kecil */
+.legend-color {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    margin-right: 10px;
+    display: inline-block;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Definisi Warna */
+.color-blue { background-color: #1e90ff; border: 1px solid #187bcd; }
+.color-green { background-color: #28a745; border: 1px solid #1e7e34; }
+.color-red { background-color: #dc2626; border: 1px solid #b91c1c; }
+.color-grey { background-color: #6b7280; border: 1px solid #4b5563; }
+
+.legend-note {
+    font-size: 0.8rem;
+    color: #999;
+    font-style: italic;
+    margin: 0;
 }
 
 /* --------------------
