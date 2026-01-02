@@ -247,7 +247,7 @@ h1, h2, h3 {
 }
 
 
-/* --- Card Cuaca (UPDATED CONSISTENCY) --- */
+/* --- Card Cuaca --- */
 .recent-places h3 {
     font-size: 1rem;
     font-weight: 600;
@@ -259,7 +259,6 @@ h1, h2, h3 {
 
 .weather-cards-container {
     display: grid;
-    /* Membuat kolom otomatis, min width 240px agar kartu tidak terlalu gepeng */
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 25px;
     margin-top: 2rem;
@@ -270,14 +269,9 @@ h1, h2, h3 {
 .weather-card {
     background-color: var(--color-bg-card-default);
     border-radius: 16px;
-    
-    /* Padding bawah 3.5rem untuk memberi ruang info detail */
     padding: 1.5rem 1.5rem 3.5rem 1.5rem;
-    
     width: 100%;
-    /* FIXED HEIGHT: Kunci konsistensi */
     height: 420px;
-    
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -285,7 +279,7 @@ h1, h2, h3 {
     box-shadow: 0 6px 15px var(--color-shadow);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;
-    position: relative; /* Untuk positioning absolute click-info */
+    position: relative; 
     overflow: hidden;
 }
 
@@ -312,8 +306,8 @@ h1, h2, h3 {
     height: 70px;
     
     display: flex;
-    align-items: center;       /* Center vertikal */
-    justify-content: center;   /* Center horizontal */
+    align-items: center;      
+    justify-content: center;   
     text-align: center;
     line-height: 1.2;
     overflow: hidden;
@@ -321,10 +315,10 @@ h1, h2, h3 {
 
 .weather-card .temp-icon-wrapper {
     display: flex;
-    flex-direction: column; /* Stack vertikal */
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    flex-grow: 1; /* Isi ruang sisa */
+    flex-grow: 1; 
     padding: 10px 0;
 }
 
@@ -377,7 +371,7 @@ h1, h2, h3 {
     color: #8cafff;
 }
 
-/* Info Klik di Bawah (Absolute) */
+/* Info Klik di Bawah CARD */
 .weather-card .click-info {
     position: absolute;
     bottom: 15px;
@@ -389,10 +383,6 @@ h1, h2, h3 {
     opacity: 0.8;
 }
 
-/* Mengatur Ulang Tata Letak untuk Kartu Dinamis */
-.weather-card--dynamic {
-    /* height sudah diatur di class utama weather-card */
-}
 .weather-card--default {
     height: 420px; /* Samakan dengan yang lain */
 }
@@ -1011,22 +1001,18 @@ h1, h2, h3 {
     display: flex;
     flex-wrap: wrap; 
     gap: 20px;       
-    justify-content: flex-start; /* Kartu mulai dari kiri */
+    justify-content: flex-start;
     margin-top: 1.5rem;
 }
 
-/* 2. Paksa Ukuran Kartu Kecil & PUSATKAN ISINYA */
 .recent-places .weather-card {
     width: 210px !important;  
     height: 300px !important; 
     padding: 1.5rem !important; 
-    
     flex: none; 
-    
-    /* --- PERBAIKAN CENTERING --- */
-    align-items: center !important; /* Paksa semua anak elemen ke tengah horizontal */
-    text-align: center !important;  /* Paksa teks rata tengah */
-    justify-content: space-between; /* Sebar konten atas-bawah */
+    align-items: center !important;
+    text-align: center !important; 
+    justify-content: space-between;
 }
 
 /* 3. Area Judul */
@@ -1034,7 +1020,7 @@ h1, h2, h3 {
     height: 40px; 
     font-size: 1.1rem;
     margin-bottom: 0;
-    width: 100%; /* Pastikan lebar penuh agar text-align center bekerja */
+    width: 100%; 
     justify-content: center;
 }
 
@@ -1042,24 +1028,24 @@ h1, h2, h3 {
 .recent-places .weather-card .temp-icon-wrapper {
     flex-grow: 1;
     display: flex;
-    flex-direction: column; /* Ikon di atas/bawah suhu */
-    justify-content: center; /* Tengah vertikal */
-    align-items: center;     /* Tengah horizontal */
+    flex-direction: column; 
+    justify-content: center;
+    align-items: center;
     padding: 0;
     margin: 0;
 }
 
 /* 5. Ukuran Font Khusus Kartu Kecil */
 .recent-places .weather-card .temp {
-    font-size: 3rem; /* Ukuran pas untuk kartu kecil */
+    font-size: 3rem; 
     line-height: 1;
-    margin-left: 0; /* Hapus margin aneh jika ada */
+    margin-left: 0;
 }
 
 .recent-places .weather-card .dynamic-icon i {
     font-size: 2.5rem; 
     margin: 10px 0;
-    display: block; /* Pastikan ikon dianggap blok sendiri */
+    display: block; 
 }
 
 /* 6. Sembunyikan 'Klik untuk detail' agar tidak sempit */
