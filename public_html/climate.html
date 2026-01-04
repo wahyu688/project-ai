@@ -1,117 +1,68 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Climate Analysis - Cuacane</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <title>Climate Data - Cuacane</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
     <header class="header">
         <div class="container header__content">
-            <a href="home.html" class="logo">Cuacane</a>
-            
+            <a href="home.html" class="logo"><i class="fas fa-bolt"></i> Cuacane</a>
             <nav class="nav">
-                <a href="research.html" class="nav__link">Research</a>
+                <a href="home.html" class="nav__link">Home</a>
                 <a href="climate.html" class="nav__link nav__link--active">Climate</a>
-                <a href="service.html" class="nav__link">Service</a>
-                <a href="about.html" class="nav__link">About Us</a>
             </nav>
-
-            <a href="travel_map.html" class="btn btn--primary">
-                <i class="fas fa-map-marked-alt"></i> OpenMaps
-            </a>
         </div>
     </header>
 
-    <main>
-        <section class="section section--page-header">
-            <div class="container">
-                <h1 class="page-title">Global Climate Trend Analysis</h1>
-                <p class="page-subtitle">Menganalisis pola iklim jangka panjang, data historis, dan proyeksi pemanasan global untuk pengambilan keputusan yang lebih baik.</p>
+    <main class="section">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h1 class="page-title">Historical Climate Data</h1>
+                <p class="page-subtitle">Analyze yearly temperature trends and environmental changes.</p>
             </div>
-        </section>
 
-        <section class="section section--climate-data">
-            <div class="container">
-                <h2>Key Climate Metrics</h2>
-                <div class="climate-cards-grid">
-                    <div class="climate-card">
-                        <i class="fas fa-thermometer-three-quarters icon-large"></i> 
-                        <h3>Global Temperature Trend</h3>
-                        <p class="data-value">15.4°C</p>
-                        <p class="data-description">Rata-rata suhu global saat ini (menggunakan data Open-Meteo current model).</p>
-                    </div>
-                    <div class="climate-card">
-                        <i class="fas fa-wind icon-large"></i>
-                        <h3>Wind Speed Variability</h3>
-                        <p class="data-value">± 2.1 m/s</p>
-                        <p class="data-description">Variasi kecepatan angin rata-rata dalam dataset Open-Meteo 5 tahun.</p>
-                    </div>
-                    <div class="climate-card">
-                        <i class="fas fa-cloud-rain icon-large"></i>
-                        <h3>Historical Precipitation</h3>
-                        <p class="data-value">120 mm/bulan</p>
-                        <p class="data-description">Curah hujan rata-rata global musiman dari data re-analisis.</p>
-                    </div>
-                    <div class="climate-card">
-                        <i class="fas fa-water icon-large"></i>
-                        <h3>Relative Humidity Index</h3>
-                        <p class="data-value">68%</p>
-                        <p class="data-description">Rata-rata kelembaban relatif atmosfer di lapisan permukaan.</p>
-                    </div>
+            <div class="weather-cards-container mb-5" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                <div class="weather-card" style="height: auto; min-height: 200px; justify-content: center; text-align: center;">
+                    <i class="fas fa-temperature-high text-primary fa-3x mb-3"></i>
+                    <h3>34°C</h3>
+                    <p class="text-muted">Max Annual Temp</p>
+                </div>
+                <div class="weather-card" style="height: auto; min-height: 200px; justify-content: center; text-align: center;">
+                    <i class="fas fa-tint text-primary fa-3x mb-3"></i>
+                    <h3>1800mm</h3>
+                    <p class="text-muted">Avg Rainfall</p>
+                </div>
+                <div class="weather-card" style="height: auto; min-height: 200px; justify-content: center; text-align: center;">
+                    <i class="fas fa-wind text-primary fa-3x mb-3"></i>
+                    <h3>12 km/h</h3>
+                    <p class="text-muted">Avg Wind Speed</p>
                 </div>
             </div>
-        </section>
 
-        <section class="section section--historical">
-            <div class="container">
-                <h2>Data Historis dan Grafik (Jakarta - Satu Minggu Sebelum Hari ini)</h2>
-                <p>Visualisasi tren suhu maksimum harian selama satu tahun terakhir menggunakan data arsip Open-Meteo.</p>
-                
-                <div class="placeholder-graphic" style="background: white; padding: 20px; height: 450px; display: block;">
+            <div class="section--historical">
+                <h2 class="mb-4">Temperature Trends (Last 1 Year)</h2>
+                <div class="placeholder-graphic">
                     <canvas id="historical-chart"></canvas>
                 </div>
             </div>
-        </section>
+        </div>
     </main>
 
     <footer class="footer">
-        <div class="container footer__grid">
-            <div class="footer__col">
-                <div class="logo">Cuacane</div>
-                <p>Prakiraan cuaca paling akurat di seluruh dunia, didukung oleh data real-time.</p>
-                <div class="social-icons">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                </div>
-            </div>
-            <div class="footer__col">
-                <h3>Quick Links</h3>
-                <ul>
-                    <li><a href="climate.html">Climate Analysis</a></li>
-                    <li><a href="service.html">API & Services</a></li>
-                    <li><a href="research.html">Our Research</a></li>
-                    <li><a href="about.html">About Us</a></li>
-                </ul>
-            </div>
-            <div class="footer__col">
-                <h3>Contact</h3>
-                <p><i class="fas fa-envelope"></i> info@cuacane.com</p>
-                <p><i class="fas fa-phone"></i> +62 21 555 1234</p>
-                <p><i class="fas fa-map-marker-alt"></i> Jakarta, Indonesia</p>
-            </div>
-        </div>
-        <div class="footer__bottom">
-            <p>&copy; 2025 Cuacane. All rights reserved.</p>
+        <div class="container text-center text-muted">
+            &copy; 2026 Cuacane.
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="script.js"></script>
-
 </body>
 </html>

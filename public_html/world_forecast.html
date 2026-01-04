@@ -1,105 +1,59 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Forecast - Cuacane</title>
-    <link rel="stylesheet" href="css/style.css">
-    <!-- Wajib: CSS untuk Leaflet -->
+    <title>World Forecast - Cuacane</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <!-- Font Awesome CDN for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
 
     <header class="header">
         <div class="container header__content">
-             <a href="home.html" class="logo">Cuacane</a>
-            
+            <a href="home.html" class="logo"><i class="fas fa-bolt"></i> Cuacane</a>
             <nav class="nav">
-                <a href="research.html" class="nav__link">Research</a>
-                <a href="climate.html" class="nav__link">Climate</a>
-                <a href="service.html" class="nav__link">Service</a>
-                <a href="about.html" class="nav__link">About Us</a>
+                <a href="home.html" class="nav__link">Home</a>
+                <a href="world_forecast.html" class="nav__link nav__link--active">World Map</a>
             </nav>
-
-            <a href="travel_map.html" class="btn btn--primary">
-                <i class="fas fa-map-marked-alt"></i> OpenMaps
-            </a>
         </div>
     </header>
 
-    <main>
-        <section class="section section--page-header">
-            <div class="container">
-                <h1 class="page-title">World Wide Weather Forecast</h1>
-                <p class="page-subtitle">Dapatkan prakiraan cuaca terkini untuk kota-kota metropolitan utama di seluruh dunia.</p>
+    <main class="section">
+        <div class="container">
+            <div class="text-center mb-4">
+                <h1 class="page-title">Global Weather Overview</h1>
+                <p class="page-subtitle">Real-time temperature and conditions from major cities worldwide.</p>
             </div>
-        </section>
 
-        <section class="section section--world-cities">
-            <div class="container">
-                <h2>Prakiraan Kota Utama</h2>
-                <div class="weather-cards-container" id="world-weather-result">
-                    <div class="weather-card loading-card" style="width: 100%;">
-                         <h2>Memuat Prakiraan Cuaca Global...</h2>
-                         <i class="fas fa-spinner fa-spin fa-2x mt-4 text-blue-400"></i>
-                    </div>
+            <div class="map-container mb-4">
+                <div id="temperature-map"></div>
+                <div class="map-legend">
+                    <p class="text-sm text-muted"><i class="fas fa-info-circle"></i> Use the layers button (top-right of map) to toggle Temperature/Precipitation.</p>
                 </div>
             </div>
-        </section>
-        
-        <section class="section section--historical">
-            <div class="container">
-                <h2>Peta Suhu Real-time</h2>
-                <p>Jelajahi perbedaan suhu dan pola cuaca di berbagai benua dengan visualisasi interaktif.</p>
-                
-                <div class="weather-map-container">
-                    <!-- Leaflet akan merender peta di DIV ini -->
-                    <div id="temperature-map" style="width: 100%; height: 550px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);"></div>
-                    <p class="mt-2 text-center" style="font-size: 0.85rem; color: #666;">Peta cuaca interaktif menunjukkan suhu global terkini.</p>
+
+            <h2 class="mt-5 mb-4">Major Cities Forecast</h2>
+            
+            <div id="world-weather-result" class="weather-cards-container">
+                <div class="weather-card loading-card" style="align-items: center; justify-content: center;">
+                    <i class="fas fa-spinner fa-spin fa-2x text-muted"></i>
                 </div>
             </div>
-        </section>
-
+        </div>
     </main>
 
     <footer class="footer">
-        <div class="container footer__grid">
-            <div class="footer__col">
-                <div class="logo">Cuacane</div>
-                <p>Prakiraan cuaca paling akurat di seluruh dunia, didukung oleh data real-time.</p>
-                <div class="social-icons">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                </div>
-            </div>
-            <div class="footer__col">
-                <h3>Quick Links</h3>
-                <ul>
-                    <li><a href="climate.html">Climate Analysis</a></li>
-                    <li><a href="service.html">API & Services</a></li>
-                    <li><a href="research.html">Our Research</a></li>
-                    <li><a href="about.html">About Us</a></li>
-                </ul>
-            </div>
-            <div class="footer__col">
-                <h3>Contact</h3>
-                <p><i class="fas fa-envelope"></i> info@cuacane.com</p>
-                <p><i class="fas fa-phone"></i> +62 21 555 1234</p>
-                <p><i class="fas fa-map-marker-alt"></i> Jakarta, Indonesia</p>
-            </div>
-        </div>
-        <div class="footer__bottom">
-            <p>&copy; 2025 Cuacane. All rights reserved.</p>
+        <div class="container text-center text-muted">
+            &copy; 2026 Cuacane.
         </div>
     </footer>
 
-    <!-- Wajib: JS untuk Leaflet -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <!-- Script utama yang sekarang berisi semua logika -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="script.js"></script>
-    
 </body>
 </html>

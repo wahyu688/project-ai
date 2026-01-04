@@ -1,132 +1,53 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About Us - Cuacane</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
     <header class="header">
         <div class="container header__content">
-            <a href="home.html" class="logo">Cuacane</a>            
+            <a href="home.html" class="logo"><i class="fas fa-bolt"></i> Cuacane</a>
             <nav class="nav">
-                <a href="research.html" class="nav__link">Research</a>
-                <a href="climate.html" class="nav__link">Climate</a>
-                <a href="service.html" class="nav__link">Service</a>
+                <a href="home.html" class="nav__link">Home</a>
                 <a href="about.html" class="nav__link nav__link--active">About Us</a>
             </nav>
-
-            <a href="travel_map.html" class="btn btn--primary">
-                <i class="fas fa-map-marked-alt"></i> OpenMaps
-            </a>
         </div>
     </header>
 
-    <main>
-        <section class="section section--page-header">
-            <div class="container">
-                <h1 class="page-title">Tentang Cuacane</h1>
-                <p class="page-subtitle">Penyedia data cuaca terdepan yang didukung oleh AI dan ilmu pengetahuan meteorologi mendalam.</p>
+    <main class="section">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h1 class="page-title">About Cuacane</h1>
+                <p class="page-subtitle">Bridging the gap between complex meteorological data and daily life.</p>
             </div>
-        </section>
 
-        <section class="section section--about-story">
-            <div class="container" style="max-width: 800px; text-align: center;">
-                <h2>Kisah Kami</h2>
-                <p>Didirikan pada tahun 2020 oleh sekelompok ilmuwan data dan meteorolog, Cuacane lahir dari kebutuhan akan prakiraan cuaca yang lebih akurat dan dapat ditindaklanjuti. Kami percaya bahwa data cuaca harus menjadi alat yang memberdayakan, bukan sekadar informasi latar belakang.</p>
-                <p>Sejak awal, kami telah menggabungkan model prakiraan numerik (NWP) tradisional dengan teknologi Machine Learning canggih untuk memproses volume data observasi yang sangat besar—mulai dari satelit geostasioner hingga stasiun darat mikro.</p>
-                <div style="margin-top: 2rem;">
-                    <a href="research.html" class="btn btn--primary">
-                        <i class="fas fa-flask"></i> Lihat Metodologi Kami
-                    </a>
+            <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200" style="max-width: 800px; margin: 0 auto;">
+                <p class="mb-4 text-lg">
+                    <strong>Cuacane</strong> is a modern weather application built to help users make better decisions. 
+                    Whether you are planning a road trip across the city or analyzing climate trends for research, 
+                    our tools provide the precision you need.
+                </p>
+                <p class="mb-4">
+                    Founded in 2024, our mission is to integrate Artificial Intelligence into standard weather forecasting. 
+                    By moving beyond simple "Sunny" or "Rainy" labels, we provide risk assessments and route-specific advice.
+                </p>
+                <div class="mt-5 text-center">
+                    <a href="home.html" class="btn btn--primary">Get Started</a>
                 </div>
-            </div>
-        </section>
-
-        <section class="section section--about-mission">
-            <div class="container">
-                <h2 style="text-align: center;">Misi dan Nilai Kami</h2>
-                <div class="mission-grid">
-                    <div class="mission-card">
-                        <i class="fas fa-bullseye"></i>
-                        <h3>Akurasi</h3>
-                        <p>Menyediakan prakiraan dengan tingkat akurasi tertinggi untuk mengurangi risiko dan ketidakpastian.</p>
-                    </div>
-                    <div class="mission-card">
-                        <i class="fas fa-globe-asia"></i>
-                        <h3>Aksesibilitas</h3>
-                        <p>Membuat data iklim kompleks dapat diakses dan dipahami oleh semua orang, di mana pun mereka berada.</p>
-                    </div>
-                    <div class="mission-card">
-                        <i class="fas fa-handshake"></i>
-                        <h3>Keberlanjutan</h3>
-                        <p>Mendukung upaya adaptasi iklim dan ketahanan komunitas melalui informasi yang andal.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="section section--team">
-            <div class="container">
-                <h2 style="text-align: center;">Tim Kepemimpinan Kami</h2>
-                <div class="team-grid">
-                    <div class="team-member">
-                        <img src="source/pak abram.jpeg" alt="" title="" class="team-member-photo">
-                        <h4>Abram Setyo</h4>
-                        <p>Chief Meteorologist</p>
-                    </div>
-                    <div class="team-member">
-                        <img src="source/wahyu.jpeg" alt="Wahyu A. Barmawi" title="Wahyu A. Barmawi" class="team-member-photo">
-                        <h4>Wahyu A. Barmawi</h4>
-                        <p>Head of Data Science</p>
-                    </div>
-                    <div class="team-member">
-                        <img src="source/rofi.jpeg" alt="Rofi Zuhair Ramadhan" title="Rofi Zuhair Ramadhan" class="team-member-photo">
-                        <h4>Rofi Zuhair Ramadhan</h4>
-                        <p>VP of Product</p>
-                    </div>
-                    <div class="team-member">
-                        <img src="source/alin.jpeg" alt="Alin Lorensia" title="Alin Lorensia" class="team-member-photo">
-                        <h4>Alin Lorensia</h4>
-                        <p>Lead Infrastructure</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-    
-    <footer class="footer">
-        <div class="container footer__grid">
-            <div class="footer__col">
-                <div class="logo">Cuacane</div>
-                <p>Prakiraan cuaca paling akurat di seluruh dunia, didukung oleh data real-time.</p>
-                <div class="social-icons">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                </div>
-            </div>
-            <div class="footer__col">
-                <h3>Quick Links</h3>
-                <ul>
-                    <li><a href="climate.html">Climate Analysis</a></li>
-                    <li><a href="service.html">API & Services</a></li>
-                    <li><a href="research.html">Our Research</a></li>
-                    <li><a href="about.html">About Us</a></li>
-                </ul>
-            </div>
-            <div class="footer__col">
-                <h3>Contact</h3>
-                <p><i class="fas fa-envelope"></i> info@cuacane.com</p>
-                <p><i class="fas fa-phone"></i> +62 21 555 1234</p>
-                <p><i class="fas fa-map-marker-alt"></i> Jakarta, Indonesia</p>
             </div>
         </div>
-        <div class="footer__bottom">
-            <p>&copy; 2025 Cuacane. All rights reserved.</p>
+    </main>
+
+    <footer class="footer">
+        <div class="container text-center text-muted">
+            &copy; 2026 Cuacane.
         </div>
     </footer>
 

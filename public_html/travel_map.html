@@ -1,166 +1,87 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenMaps - Travel Advisor</title>
-    
-    <!-- CSS dan Icon -->
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    
-    <!-- Leaflet & Leaflet Routing Machine CSS (Wajib) -->
+    <title>Route Advisor - Cuacane</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
-    
 </head>
 <body>
 
-    <!-- Header diambil dari file lain -->
     <header class="header">
         <div class="container header__content">
-            <a href="home.html" class="logo">Cuacane</a>
-            
+            <a href="home.html" class="logo"><i class="fas fa-bolt"></i> Cuacane</a>
             <nav class="nav">
-                <a href="research.html" class="nav__link">Research</a>
-                <a href="climate.html" class="nav__link">Climate</a>
-                <a href="service.html" class="nav__link">Service</a>
-                <a href="about.html" class="nav__link">About Us</a>
+                <a href="home.html" class="nav__link">Home</a>
+                <a href="travel_map.html" class="nav__link nav__link--active">Route Advisor</a>
             </nav>
-
-            <a href="travel_map.html" class="btn btn--primary">
-                <i class="fas fa-map-marked-alt"></i> OpenMaps
-            </a>
         </div>
     </header>
 
-    <main>
-        <section class="section section--page-header" style="padding-bottom: 1rem;">
-            <div class="container">
-                <h1 class="page-title">Travel Map & Weather Advisor</h1>
-                <p class="page-subtitle">Rencanakan rute Anda dan dapatkan rekomendasi barang bawaan cerdas berdasarkan prakiraan cuaca di sepanjang perjalanan.</p>
+    <main class="section">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h1 class="page-title">Smart Route Weather</h1>
+                <p class="page-subtitle">Plan your trip with AI-powered weather predictions along your path.</p>
             </div>
-        </section>
 
-        <section class="section section--route-advisor">
-            <div class="container route-grid">
-                
-                <!-- Panel Input Rute dan Hasil AI -->
-                <div class="route-form-card">
-                    <h2>Rencanakan Perjalanan</h2>
+            <div class="route-grid">
+                <aside class="route-advisor-card">
+                    <h3 class="mb-4"><i class="fas fa-route"></i> Plan Journey</h3>
+                    
                     <form id="route-form">
                         <div class="form-group mb-4">
-                            <label for="start-location" class="block text-sm font-medium text-gray-700 mb-1">Titik Awal:</label>
-                            <input type="text" id="start-location" placeholder="Masukkan lokasi awal (mis. Jakarta)" required class="route-input">
-                            
-                            <button type="button" id="use-location-route-btn" class="btn btn--link" style="font-size: 0.85rem; padding: 0; margin-top: -5px; color: var(--color-primary);">
-                                <i class="fas fa-location-arrow"></i> Gunakan Lokasi Saya
+                            <label class="mb-1 block text-sm font-bold text-muted">Start Location</label>
+                            <input type="text" id="start-location" class="route-input" placeholder="e.g., Jakarta" required>
+                            <button type="button" id="use-location-route-btn" class="btn btn--link text-sm">
+                                <i class="fas fa-location-arrow"></i> Use My Location
                             </button>
                         </div>
 
                         <div class="form-group mb-4">
-                            <label for="end-location" class="block text-sm font-medium text-gray-700 mb-1">Tujuan Akhir:</label>
-                            <input type="text" id="end-location" placeholder="Masukkan lokasi tujuan (mis. Bandung)" required class="route-input">
+                            <label class="mb-1 block text-sm font-bold text-muted">Destination</label>
+                            <input type="text" id="end-location" class="route-input" placeholder="e.g., Bandung" required>
                         </div>
-                        
+
                         <button type="submit" class="btn btn--primary w-full">
-                            <i class="fas fa-route"></i> Tinjau Rute & Cuaca
+                            Analyze Route & Weather
                         </button>
                     </form>
-                    
-                    <!-- Area Hasil Analisis AI -->
-                    <div id="ai-advisor-output" class="route-advisor-card" style="display: none;">
-                        <h3 class="mt-4"><i class="fas fa-magic"></i> Rekomendasi AI Advisor:</h3>
+
+                    <div id="ai-advisor-output" class="ai-result-box" style="display: none;">
+                        <h5><i class="fas fa-robot"></i> AI Recommendation</h5>
                         <div id="advisor-content">
-                            <!-- Konten rekomendasi dimuat di sini -->
+                            </div>
+                        <p id="route-message" class="text-sm mt-2 text-muted"></p>
+                    </div>
+                </aside>
+
+                <div class="map-wrapper">
+                    <div class="map-container">
+                        <div id="map-route"></div>
+                        <div class="map-legend">
+                            <h4><i class="fas fa-info-circle"></i> Map Legend</h4>
+                            <div class="legend-grid">
+                                <div class="legend-item"><span class="legend-color color-blue"></span> Rain/Wet</div>
+                                <div class="legend-item"><span class="legend-color color-green"></span> Light Rain/Safe</div>
+                                <div class="legend-item"><span class="legend-color color-red"></span> High Intensity</div>
+                                <div class="legend-item"><span class="legend-color color-grey"></span> Cloudy/Neutral</div>
+                            </div>
                         </div>
                     </div>
-                    
-                    <!-- Area Pesan Loading/Error -->
-                    <p id="route-message" class="route-message">
-                        Masukkan lokasi dan waktu, lalu klik 'Tinjau Rute & Cuaca'.
-                    </p>
-
                 </div>
-
-                <!-- Peta Rute -->
-                <div class="map-container">
-                    <div id="map-route"></div>
-                    
-                    <div class="map-legend">
-                        <h4><i class="fas fa-info-circle"></i> Keterangan Peta</h4>
-                        <div class="legend-grid">
-                            <div class="legend-item">
-                                <span class="legend-color color-blue"></span>
-                                <span><strong>Area Biru:</strong> Hujan / Basah</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-color color-green"></span>
-                                <span><strong>Area Hijau:</strong> Hujan Ringan / Aman</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-color color-red"></span>
-                                <span><strong>Area Merah:</strong> Intensitas Tinggi / Panas</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-color color-grey"></span>
-                                <span><strong>Area Abu:</strong> Berawan / Netral</span>
-                            </div>
-                        </div>
-                        <p class="legend-note">*Visualisasi berdasarkan data curah hujan dan suhu real-time.</p>
-                    </div>
-                    </div>
             </div>
-        </section>
+        </div>
     </main>
 
-    <footer class="footer">
-        <div class="container footer__grid">
-            <div class="footer__col">
-                <div class="logo">Cuacane</div>
-                <p>Prakiraan cuaca paling akurat di seluruh dunia, didukung oleh data real-time.</p>
-                <div class="social-icons">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                </div>
-            </div>
-            <div class="footer__col">
-                <h3>Quick Links</h3>
-                <ul>
-                    <li><a href="climate.html">Climate Analysis</a></li>
-                    <li><a href="service.html">API & Services</a></li>
-                    <li><a href="research.html">Our Research</a></li>
-                    <li><a href="about.html">About Us</a></li>
-                </ul>
-            </div>
-            <div class="footer__col">
-                <h3>Contact</h3>
-                <p><i class="fas fa-envelope"></i> info@cuacane.com</p>
-                <p><i class="fas fa-phone"></i> +62 21 555 1234</p>
-                <p><i class="fas fa-map-marker-alt"></i> Jakarta, Indonesia</p>
-            </div>
-        </div>
-        <div class="footer__bottom">
-            <p>&copy; 2025 Cuacane. All rights reserved.</p>
-        </div>
-    </footer>
-
-    <!-- Wajib: JS untuk Leaflet -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <!-- Tambahkan plugin Leaflet Routing Machine untuk rute -->
     <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
-    <!-- Script utama yang berisi semua logika -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="script.js"></script>
-    
-    <script>
-        // Logika Peta Perjalanan akan ditangani di script.js
-        document.addEventListener('DOMContentLoaded', () => {
-            // Panggil inisialisasi peta di sini. Logika ada di script.js.
-            if (typeof initTravelMap === 'function') {
-                initTravelMap();
-            }
-        });
-    </script>
 </body>
 </html>

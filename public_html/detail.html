@@ -1,62 +1,59 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detail Cuaca - Cuacane</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <title>Weather Detail - Cuacane</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
     <header class="header">
         <div class="container header__content">
-            <a href="home.html" class="logo">Cuacane</a>
+            <a href="home.html" class="logo"><i class="fas fa-bolt"></i> Cuacane</a>
             <nav class="nav">
                 <a href="home.html" class="nav__link">Home</a>
-                <a href="service.html" class="nav__link">Service</a>
+                <a href="world_forecast.html" class="nav__link">World Map</a>
+                <a href="travel_map.html" class="nav__link">Travel</a>
             </nav>
         </div>
     </header>
 
-    <main>
-        <section class="section">
-            <div class="container">
-                <a href="home.html" class="btn btn--link" style="margin-bottom: 20px; display: inline-block;">
-                    <i class="fas fa-arrow-left"></i> Kembali ke Pencarian
-                </a>
+    <main class="section">
+        <div class="container">
+            <a href="home.html" class="btn btn--link mb-4">
+                <i class="fas fa-arrow-left"></i> Back to Search
+            </a>
 
-                <div id="detail-content" class="weather-detail-card" style="display: none;">
-                    </div>
-
-                <div id="detail-loading" style="text-align: center; margin-top: 50px;">
-                    <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--color-primary);"></i>
-                    <p class="mt-4">Memuat data lengkap...</p>
-                </div>
+            <div id="detail-loading" class="text-center py-5">
+                <i class="fas fa-circle-notch fa-spin fa-3x" style="color: var(--color-primary);"></i>
+                <p class="mt-4 text-muted">Fetching detailed forecast...</p>
             </div>
-        </section>
+
+            <div id="detail-content" style="display: none; animation: fadeIn 0.5s ease;">
+                </div>
+        </div>
     </main>
 
     <footer class="footer">
-        <div class="container footer__bottom">
-            <p>&copy; 2025 Cuacane. All rights reserved.</p>
+        <div class="container text-center text-muted">
+            &copy; 2026 Cuacane. All rights reserved.
         </div>
     </footer>
 
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="script.js"></script>
     <script>
-        // Script khusus halaman detail untuk membaca URL
+        // Inline init for detail page
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             const locationName = params.get('lokasi');
-
-            if (locationName) {
-                // Panggil fungsi khusus detail (akan kita buat di script.js)
+            if (locationName && typeof fetchDetailWeather === 'function') {
                 fetchDetailWeather(locationName);
             } else {
-                document.getElementById('detail-loading').innerHTML = '<p>Lokasi tidak ditemukan.</p>';
+                document.getElementById('detail-loading').innerHTML = '<p class="text-center">No location specified.</p>';
             }
         });
     </script>

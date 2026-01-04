@@ -1,121 +1,59 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Research & Methodology - Cuacane</title>
-    <link rel="stylesheet" href="css/style.css">
-    <!-- Font Awesome CDN for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <title>Research - Cuacane</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
     <header class="header">
         <div class="container header__content">
-            <a href="home.html" class="logo">Cuacane</a>
-            
+            <a href="home.html" class="logo"><i class="fas fa-bolt"></i> Cuacane</a>
             <nav class="nav">
+                <a href="home.html" class="nav__link">Home</a>
                 <a href="research.html" class="nav__link nav__link--active">Research</a>
-                <a href="climate.html" class="nav__link">Climate</a>
-                <a href="service.html" class="nav__link">Service</a>
-                <a href="about.html" class="nav__link">About Us</a>
             </nav>
-
-            <a href="travel_map.html" class="btn btn--primary">
-                <i class="fas fa-map-marked-alt"></i> OpenMaps
-            </a>
         </div>
     </header>
 
-    <main>
-        <section class="section section--page-header">
-            <div class="container">
-                <h1 class="page-title">Data Science & Meteorological Research</h1>
-                <p class="page-subtitle">Kami berinvestasi dalam penelitian untuk meningkatkan akurasi prakiraan dan memahami dinamika iklim global.</p>
+    <main class="section">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h1 class="page-title">Research & Methodology</h1>
+                <p class="page-subtitle">How we use Markov Chains and Satellite Imagery to predict weather stability.</p>
             </div>
-        </section>
 
-        <section class="section section--research-content">
-            <div class="container">
-                <h2>Metodologi Data Kami</h2>
-                <div class="method-cards-grid">
-                    <div class="method-card">
-                        <!-- Ikon untuk Advanced ML Models -->
-                        <i class="fas fa-microchip icon-large"></i>
-                        <h3>Advanced ML Models</h3>
-                        <p>Menggunakan jaringan saraf dalam untuk memperbaiki bias dan meningkatkan resolusi model cuaca numerik (NWP).</p>
-                    </div>
-                    <div class="method-card">
-                        <!-- Ikon untuk Real-Time Calibration -->
-                        <i class="fas fa-satellite-dish icon-large"></i>
-                        <h3>Real-Time Calibration</h3>
-                        <p>Kalibrasi data terus-menerus menggunakan observasi dari satelit geostasioner dan stasiun darat.</p>
-                    </div>
-                    <div class="method-card">
-                        <!-- Ikon untuk Ensemble Forecasting -->
-                        <i class="fas fa-server icon-large"></i>
-                        <h3>Ensemble Forecasting</h3>
-                        <p>Menggunakan berbagai model berbeda untuk memperkirakan probabilitas dan tingkat kepercayaan terhadap prakiraan.</p>
-                    </div>
+            <article class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 mb-5">
+                <h2 class="text-primary mb-4">The Markov Chain Model</h2>
+                <p class="mb-4">
+                    Our "AI Stability Engine" utilizes a probabilistic Markov Chain model to predict short-term weather changes. 
+                    By analyzing the current weather state (e.g., Clear, Cloudy, Rain), the model calculates the probability 
+                    of transitioning to a different state within the next 3 hours.
+                </p>
+                <div class="bg-blue-50 p-4 rounded mb-4" style="background: #f0f9ff; border-left: 4px solid var(--color-primary);">
+                    <strong>Key Metric:</strong> Risk Score. A score above 50% indicates a high instability and potential for rain.
                 </div>
+            </article>
 
-                <h2 class="mt-5">Publikasi Terbaru</h2>
-                <ul class="publication-list">
-                    <li>
-                        <div class="pub-year">2025</div>
-                        <div class="pub-title">
-                            <a href="#">The Role of AI in Reducing Latency in Global Weather Prediction.</a>
-                            <p class="pub-journal">Journal of Atmospheric Science and Technology</p>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="pub-year">2024</div>
-                        <div class="pub-title">
-                            <a href="#">Coastal Flood Risk Assessment: A High-Resolution Modeling Approach.</a>
-                            <p class="pub-journal">Climate Dynamics Review</p>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="pub-year">2024</div>
-                        <div class="pub-title">
-                            <a href="#">Improving Tropical Cyclone Track Accuracy using Adaptive Meshing.</a>
-                            <p class="pub-journal">Meteorological Applications</p>
-                        </div>
-                    </li>
+            <article class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+                <h2 class="text-primary mb-4">Data Sources</h2>
+                <ul style="list-style-position: inside; line-height: 1.8;">
+                    <li><strong>Open-Meteo API:</strong> Provides real-time and historical weather data.</li>
+                    <li><strong>OpenStreetMap (Nominatim):</strong> Powers our geocoding and reverse-geocoding services.</li>
+                    <li><strong>Google News RSS:</strong> Delivers real-time climate news updates.</li>
                 </ul>
-            </div>
-        </section>
+            </article>
+        </div>
     </main>
 
     <footer class="footer">
-        <div class="container footer__grid">
-            <div class="footer__col">
-                <div class="logo">Cuacane</div>
-                <p>Prakiraan cuaca paling akurat di seluruh dunia, didukung oleh data real-time.</p>
-                <div class="social-icons">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                </div>
-            </div>
-            <div class="footer__col">
-                <h3>Quick Links</h3>
-                <ul>
-                    <li><a href="climate.html">Climate Analysis</a></li>
-                    <li><a href="service.html">API & Services</a></li>
-                    <li><a href="research.html">Our Research</a></li>
-                    <li><a href="about.html">About Us</a></li>
-                </ul>
-            </div>
-            <div class="footer__col">
-                <h3>Contact</h3>
-                <p><i class="fas fa-envelope"></i> info@cuacane.com</p>
-                <p><i class="fas fa-phone"></i> +62 21 555 1234</p>
-                <p><i class="fas fa-map-marker-alt"></i> Jakarta, Indonesia</p>
-            </div>
-        </div>
-        <div class="footer__bottom">
-            <p>&copy; 2025 Cuacane. All rights reserved.</p>
+        <div class="container text-center text-muted">
+            &copy; 2026 Cuacane.
         </div>
     </footer>
 
